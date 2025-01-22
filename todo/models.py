@@ -19,9 +19,15 @@ class Questionnaire(db.Model):
     def to_json(self):
         json = {
             'id':self.id,
-            'name':self.name
+            'name':self.name,
+            'questions':[]
         }
+        for question in get_questions():
+            json['questions'].add(question.to_json())
         return json
+    
+    def get_questions(self):
+        return Question.query.filter(question.questionnaire_id == self.id).all()
 
 
 class Question(db.Model):
@@ -33,6 +39,14 @@ class Question(db.Model):
     questionType = db.Column(db.String(120))
     questionnaire_id = db.Column(db.Integer, db.ForeignKey('questionnaire.id'))
     questionnaire = db.relationship("Questionnaire", backref=db.backref("questions", lazy="dynamic"))
+
+    def to_json(self):
+        json = {
+            'id':self.id,
+            'title':self.title,
+            'type':self.questionType
+        }
+        return json
 
 
 def getQuestionnaires():
