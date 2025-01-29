@@ -1,14 +1,13 @@
-from flask import jsonify , abort , make_response , request
-from flask import Flask, url_for
-from .app import app
-from .models import Questionnaire, Question, getQuestionnaires
+from flask import jsonify , abort , make_response , request, Flask, url_for, redirect
+from .app import app, db
+from .models import Questionnaire, Question, getQuestionnaires, getQuestionnairesJson, get_next_id_Questionnaire
 
 
 # def make_public_task(task):
 #     new_task = {}
 #     for field in task :
 #         if field == 'id':
-#             new_task ['url'] = url_for('get_tasks', task_id = task['id'] , _external = True)
+#             new_task ['uri'] = url_for('get_tasks', task_id = task['id'] , _external = True)
 #         else:
 #             new_task [field] = task[field]
 #     return new_task
@@ -16,14 +15,25 @@ from .models import Questionnaire, Question, getQuestionnaires
 
 @app.route("/")
 def home():
-    questionnaires = {}
-    for question in getQuestionnaires():
-        questionnaires.add(question.to_json())
-    return jsonify(questionnaires)
+    return redirect(url_for("get_questionnaires"))
 
+@app.route("/api/questionnaires", methods = ['GET'])
+def get_questionnaires():
+    return jsonify(getQuestionnairesJson()), 200
 
-# @app.route('/todo/api/v1.0/tasks' , methods = ['GET'])
-# def get_tasks():
+#  curl -i -H "Content-Type: application/json" -X POST -d '{"name":"test"}' http://localhost:5000/api/questionnaires
+@app.route("/api/questionnaires", methods = ['POST'])
+def create_questionnaires():
+    if not request.json or not 'name' in request.json:
+        abort(400)
+    name = request.json["name"]
+    questionnaire = Questionnaire(name)
+    db.session.add(questionnaire)
+    db.session.commit()
+    return jsonify(questionnaire.to_json()), 201
+
+# @app.route('/api/questionnaires' , methods = ['GET'])
+# def get_questions():
 #     return jsonify(tasks =[make_public_task(t) for t in tasks ])
 
 # @app.route('/todo/api/v1.0/tasks', methods = ['POST'])

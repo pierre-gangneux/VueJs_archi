@@ -11,6 +11,7 @@ class Questionnaire(db.Model):
     name = db.Column(db.String(100))
 
     def __init__(self, name):
+        self.id = get_next_id_Questionnaire()
         self.name = name
     
     def __repr__(self):
@@ -22,13 +23,12 @@ class Questionnaire(db.Model):
             'name':self.name,
             'questions':[]
         }
-        for question in get_questions():
-            json['questions'].add(question.to_json())
+        for question in self.get_questions():
+            json['questions'].append(question.to_json())
         return json
     
     def get_questions(self):
-        return Question.query.filter(question.questionnaire_id == self.id).all()
-
+        return Question.query.filter(Question.questionnaire_id == self.id).all()
 
 class Question(db.Model):
 
@@ -50,11 +50,15 @@ class Question(db.Model):
 
 
 def getQuestionnaires():
-    query = Questionnaire.query.all()
-    print(query)
-    return query
+    return Questionnaire.query.all()
 
+def getQuestionnairesJson():
+    return [questionnaire.to_json() for questionnaire in Questionnaire.query.all()]
 
+def get_next_id_Questionnaire():
+    max_id = db.session.query(func.max(Questionnaire.id)).scalar()
+    next_id = (max_id or 0) + 1
+    return next_id
 
 
 
