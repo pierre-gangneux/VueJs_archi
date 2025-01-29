@@ -1,78 +1,96 @@
 from flask import jsonify , abort , make_response , request, Flask, url_for, redirect
 from .app import app, db
-from .models import Questionnaire, Question, getQuestionnaires, getQuestionnairesJson, get_next_id_Questionnaire
-
-
-# def make_public_task(task):
-#     new_task = {}
-#     for field in task :
-#         if field == 'id':
-#             new_task ['uri'] = url_for('get_tasks', task_id = task['id'] , _external = True)
-#         else:
-#             new_task [field] = task[field]
-#     return new_task
+from .models import Questionnaire, Question, getQuestionnaires, get_next_id_Questionnaire, get_questionnaire, get_questions
 
 
 @app.route("/")
 def home():
-    return redirect(url_for("get_questionnaires"))
+    return redirect(url_for("questionnaires"))
 
 @app.route("/api/questionnaires", methods = ['GET'])
-def get_questionnaires():
-    return jsonify(getQuestionnairesJson()), 200
+def questionnaires():
+    """Permet d'obtenir la liste des questionnaires avec la méthode GET
+    Un questionnaire est composé d'un identifiant, d'un nom 
+    ainsi qu'une URI permettant d'obtenir les questions du questionnaire
 
-#  curl -i -H "Content-Type: application/json" -X POST -d '{"name":"test"}' http://localhost:5000/api/questionnaires
+    Returns:
+        json: la liste des questionnaires
+    """
+    questionnaires = getQuestionnaires()
+    for questionnaire in questionnaires:
+        questionnaire["uri"] = "/api/questionnaire/"+str(questionnaire["id"])+"/questions"
+    return jsonify(questionnaires), 200
+
+# curl -i -H "Content-Type: application/json" -X POST -d '{"name":"test"}' http://localhost:5000/api/questionnaires
 @app.route("/api/questionnaires", methods = ['POST'])
 def create_questionnaires():
+    """Permet de créer un questionnaire avec la méthode POST
+    Nécessite un nom pour créer le questionnaire
+
+    Returns:
+        json: le questionnaire une fois créer
+    """
     if not request.json or not 'name' in request.json:
         abort(400)
-    name = request.json["name"]
-    questionnaire = Questionnaire(name)
+    questionnaire = Questionnaire(request.json["name"])
     db.session.add(questionnaire)
     db.session.commit()
     return jsonify(questionnaire.to_json()), 201
 
-# @app.route('/api/questionnaires' , methods = ['GET'])
-# def get_questions():
-#     return jsonify(tasks =[make_public_task(t) for t in tasks ])
+@app.route("/api/questionnaire/<int:questionnaire_id>", methods = ["GET"])
+def questionnaire(questionnaire_id:int):
+    """Permet obtenir un questionnaire en renseignant son id avec la méthode GET
 
-# @app.route('/todo/api/v1.0/tasks', methods = ['POST'])
-# def create_task():
-#     if not request.json or not 'title' in request.json:
-#         abort(400)
-#     task = {
-#         'id': tasks[-1]['id'] + 1,
-#         'title': request.json['title'],
-#         'description': request.json.get('description' , ""),
-#         'done': False
-#     }
-#     tasks.append(task)
-#     return jsonify({'task': make_public_task(task)}), 201
+    Args:
+        questionnaire_id (int): l'id du questionnaire que l'on veut récupérer
+
+    Returns:
+        json: questionnaire
+    """
+    questionnaire = get_questionnaire(questionnaire_id)
+    if questionnaire is None:
+        # Le questionnaire n'existe pas
+        abort(404)
+    return jsonify(questionnaire), 200
+
+@app.route("/api/questionnaire/<int:questionnaire_id>/questions", methods = ["GET"])
+def questionnaire_questions(questionnaire_id:int):
+    """Permet d'obtenir les questions d'un questionnaire avec la méthode GET
+
+    Args:
+        questionnaire_id (int): l'id du questionnaire contenant les questions
+
+    Returns:
+        json: liste des questions du questionnaire
+    """
+    questionnaire = get_questions(questionnaire_id)
+    if questionnaire is None:
+        # Le questionnaire n'existe pas
+        abort(404)
+    return jsonify(questionnaire), 200
 
 
 
-# @app.errorhandler(404)
-# def not_found(error):
-#     return make_response(jsonify({'error': 'Not found'}), 404)
+@app.route("/api/question/<int:id_question>", methods = ['GET'])
+def question(id_question:int):
+    """Permet d'obtenir le json d'un question avec la méthode GET
 
-# @app.errorhandler(400)
-# def not_found(error):
-#     return make_response(jsonify({'error': 'Bad request'}), 400)
+    Args:
+        id_question (int): l'id de la question que l'on veut récupérer
 
-# @app.route('/todo/api/v1.0/tasks/<int:task_id>', methods = ['PUT'])
-# def update_task(task_id):
-#     task = [ task for task in tasks if task ['id'] == task_id]
-#     if len(task) == 0:
-#         abort(404)
-#     if not request.json :
-#         abort(400)
-#     if 'title' in request.json and type(request.json['title']) != str:
-#         abort(400)
-#     if 'description' in request.json and type(request.json['description']) is not str:
-#         abort(400)
-#     if 'done' in request.json and type(request.json['done']) is not bool:
-#         abort(400)
-#     task[0]['title'] = request.json.get('title', task[0]['title'])
-#     task[0]['description'] = request.json.get('description', task[0]['escription'])
-#     task[0]['done'] = request.json.get('done', task[0]['done'])
-#     return jsonify({'task': make_public_task(task[0])})
+    Returns:
+        json: la question
+    """
+    return jsonify(get_question(id_question)), 200
+
+# Modifier les questions et les questionnaires
+
+# Supprimer les questions et les questionnaires
+
+@app.errorhandler(404)
+def not_found(error):
+    return make_response(jsonify({'error': 'Not found'}), 404)
+
+@app.errorhandler(400)
+def not_found(error):
+    return make_response(jsonify({'error': 'Bad request'}), 400)

@@ -20,15 +20,24 @@ class Questionnaire(db.Model):
     def to_json(self):
         json = {
             'id':self.id,
-            'name':self.name,
-            'questions':[]
+            'name':self.name
         }
-        for question in self.get_questions():
-            json['questions'].append(question.to_json())
         return json
     
     def get_questions(self):
         return Question.query.filter(Question.questionnaire_id == self.id).all()
+
+def getQuestionnaires():
+    return [questionnaire.to_json() for questionnaire in Questionnaire.query.all()]
+
+def get_questionnaire(questionnaire_id):
+    return Questionnaire.query.filter(Questionnaire.id == questionnaire_id).first()
+
+def get_next_id_Questionnaire():
+    max_id = db.session.query(func.max(Questionnaire.id)).scalar()
+    next_id = (max_id or 0) + 1
+    return next_id
+
 
 class Question(db.Model):
 
@@ -48,42 +57,14 @@ class Question(db.Model):
         }
         return json
 
+def get_questions(id_questionnaire):
+    questions = Question.query.filter(Question.questionnaire_id == id_questionnaire).all()
+    if questions is None:
+        return None
+    return [question.to_json() for question in questions]
 
-def getQuestionnaires():
-    return Questionnaire.query.all()
-
-def getQuestionnairesJson():
-    return [questionnaire.to_json() for questionnaire in Questionnaire.query.all()]
-
-def get_next_id_Questionnaire():
-    max_id = db.session.query(func.max(Questionnaire.id)).scalar()
-    next_id = (max_id or 0) + 1
-    return next_id
-
-
-
-
-
-
-
-
-#tasks=[
-#{
-#'id':1,
-#'title':'Courses',
-#'description':'Salade,Oignons,Pommes,Clementines',
-#'done':True
-#},
-#{
-#'id':2,
-#'title':'ApprendreREST',
-#'description':'Apprendremoncoursetcomprendrelesexemples',
-#'done':False
-#},
-#{
-#'id':3,
-#'title':'ApprendreAjax',
-#'description':'RevoirlesexemplesetecrireunclientRESTJSavecAjax',
-#'done':False
-#}
-#]
+def get_question():
+    questionnaire = Quy.query.filter(Questionnaire.id == questionnaire_id).first()
+    if questionnaire is None:
+        return None
+    return questionnaire.to_json()
