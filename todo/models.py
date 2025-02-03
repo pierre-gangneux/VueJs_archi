@@ -31,7 +31,10 @@ def getQuestionnaires():
     return [questionnaire.to_json() for questionnaire in Questionnaire.query.all()]
 
 def get_questionnaire(questionnaire_id):
-    return Questionnaire.query.filter(Questionnaire.id == questionnaire_id).first()
+    try:
+        return Questionnaire.query.filter(Questionnaire.id == questionnaire_id).first()
+    except:
+        return None
 
 def get_next_id_Questionnaire():
     max_id = db.session.query(func.max(Questionnaire.id)).scalar()
@@ -49,6 +52,12 @@ class Question(db.Model):
     questionnaire_id = db.Column(db.Integer, db.ForeignKey('questionnaire.id'))
     questionnaire = db.relationship("Questionnaire", backref=db.backref("questions", lazy="dynamic"))
 
+    def __init__(self, title, questionType, questionnaire_id):
+        self.id = get_next_id_Question()
+        self.title = title
+        self.questionType = questionType
+        self.questionnaire_id = questionnaire_id
+
     def to_json(self):
         json = {
             'id':self.id,
@@ -57,14 +66,22 @@ class Question(db.Model):
         }
         return json
 
-def get_questions(id_questionnaire):
-    questions = Question.query.filter(Question.questionnaire_id == id_questionnaire).all()
-    if questions is None:
+def get_questions_questionnaire(id_questionnaire):
+    try:
+        return [question.to_json() for question in Question.query.filter(Question.questionnaire_id == id_questionnaire).all()]
+    except:
         return None
-    return [question.to_json() for question in questions]
 
-def get_question():
-    questionnaire = Quy.query.filter(Questionnaire.id == questionnaire_id).first()
-    if questionnaire is None:
+def get_questions():
+    return [question.to_json() for question in Question.query.all()]
+
+def get_question(id_question):
+    try:
+        return Question.query.filter(Question.id == id_question).first().to_json()
+    except:
         return None
-    return questionnaire.to_json()
+
+def get_next_id_Question():
+    max_id = db.session.query(func.max(Question.id)).scalar()
+    next_id = (max_id or 0) + 1
+    return next_id

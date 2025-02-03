@@ -1,6 +1,6 @@
 from flask import jsonify , abort , make_response , request, Flask, url_for, redirect
 from .app import app, db
-from .models import Questionnaire, Question, getQuestionnaires, get_next_id_Questionnaire, get_questionnaire, get_questions
+from .models import Questionnaire, Question, getQuestionnaires, get_questionnaire, get_questions_questionnaire, get_questions, get_question
 
 
 @app.route("/")
@@ -63,13 +63,37 @@ def questionnaire_questions(questionnaire_id:int):
     Returns:
         json: liste des questions du questionnaire
     """
-    questionnaire = get_questions(questionnaire_id)
+    questionnaire = get_questions_questionnaire(questionnaire_id)
     if questionnaire is None:
         # Le questionnaire n'existe pas
         abort(404)
     return jsonify(questionnaire), 200
 
+@app.route("/api/questions", methods = ['GET'])
+def questions():
+    return jsonify(get_questions()), 200
 
+# curl -i -H "Content-Type: application/json" -X POST -d '{"title":"testQ", "type":"text", "questionnaire_id":1}' http://localhost:5000/api/questions
+@app.route("/api/questions", methods = ['POST'])
+def create_question():
+    """Permet de créer une question avec la méthode POST
+    Nécessite un titre, un type et l'id d'un questionnaire pour créer la question
+
+    Returns:
+        json: la question une fois créer
+    """
+    if (
+        not request.json
+        or not 'title' in request.json 
+        or not 'type' in request.json 
+        or not 'questionnaire_id' in request.json 
+        or get_questionnaire(request.json["questionnaire_id"]) is None
+    ):
+        abort(400)
+    question = Question(request.json["title"], request.json["type"], request.json["questionnaire_id"])
+    db.session.add(question)
+    db.session.commit()
+    return jsonify(question.to_json()), 201
 
 @app.route("/api/question/<int:id_question>", methods = ['GET'])
 def question(id_question:int):
@@ -81,11 +105,46 @@ def question(id_question:int):
     Returns:
         json: la question
     """
-    return jsonify(get_question(id_question)), 200
+    question = get_question(id_question)
+    if question is None:
+        # La question n'existe pas
+        abort(404)
+    return jsonify(question), 200
 
 # Modifier les questions et les questionnaires
 
 # Supprimer les questions et les questionnaires
+
+# curl -i -H "Content-Type: application/json" -X DELETE -d '{"question_id":"2"}' http://localhost:5000/api/questions
+@app.route("/api/questions", methods = ['DELETE'])
+def delete_question():
+    if not request.json or not 'question_id' in request.json:
+        abort(400)
+    print(type(request.json["question_id"]), request.json["question_id"])
+    question = get_question(int(request.json["question_id"]))
+    print(question)
+    if question is None:
+        # La question n'existe pas
+        abort(404)
+    db.session.remove(question)
+    db.session.commit()
+    return jsonify(question.to_json()), 200
+
+# curl -i -H "Content-Type: application/json" -X DELETE -d '{"title":"testQ", "type":"text", "questionnaire_id":1}' http://localhost:5000/api/questions
+@app.route("/api/questionnaires", methods = ["DELETE"])
+def delete_questionnaire():
+    if not request.json or not 'questionnaire_id' in request.json:
+        abort(400)
+    questionnaire = get_questionnaire(request.json["questionnaire_id"])
+    if questionnaire is None:
+        # Le questionnaire n'existe pas
+        abort(404)
+    for question in questionnaire.get_questions():
+        db.session.remove(question)
+    db.session.remove(questionnaire)
+    db.session.commit()
+    return jsonify(questionnaire.to_json()), 200
+
 
 @app.errorhandler(404)
 def not_found(error):
