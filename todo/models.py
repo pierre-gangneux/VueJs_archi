@@ -23,6 +23,9 @@ class Questionnaire(db.Model):
             'name':self.name
         }
         return json
+
+    def set_name(self, name):
+        self.name = name
     
     def get_questions(self):
         return Question.query.filter(Question.questionnaire_id == self.id).all()
@@ -41,6 +44,25 @@ def get_next_id_Questionnaire():
     next_id = (max_id or 0) + 1
     return next_id
 
+def delete_questionnaire_row(id_questionnaire):
+    questionnaire = Questionnaire.query.filter(Questionnaire.id == int(id_questionnaire)).first()
+    if questionnaire is None:
+        return None
+    for question in questionnaire.get_questions():
+        db.session.delete(question)
+    db.session.delete(questionnaire)
+    db.session.commit()
+    return questionnaire.to_json()
+
+def edit_questionnaire_row(json):
+    questionnaire = Questionnaire.query.filter(Questionnaire.id == int(json["questionnaire_id"])).first()
+    print(questionnaire)
+    if questionnaire is None:
+        return None
+    if "name" in json:
+        questionnaire.set_name(json["name"])
+    db.session.commit()
+    return questionnaire.to_json()
 
 class Question(db.Model):
 
@@ -66,6 +88,15 @@ class Question(db.Model):
         }
         return json
 
+    def set_title(self, title):
+        self.title = title
+
+    def set_type(self, type):
+        self.questionType = type
+    
+    def set_questionnaire_id(self, id):
+        self.questionnaire_id = id
+
 def get_questions_questionnaire(id_questionnaire):
     try:
         return [question.to_json() for question in Question.query.filter(Question.questionnaire_id == id_questionnaire).all()]
@@ -85,3 +116,24 @@ def get_next_id_Question():
     max_id = db.session.query(func.max(Question.id)).scalar()
     next_id = (max_id or 0) + 1
     return next_id
+
+def delete_question_row(id_question):
+    question = Question.query.filter(Question.id == int(id_question)).first()
+    if question is None:
+        return None
+    db.session.delete(question)
+    db.session.commit()
+    return question.to_json()
+
+def edit_question_row(json):
+    question = Question.query.filter(Question.id == int(json["question_id"])).first()
+    if question is None:
+        return None
+    if "title" in json:
+        question.set_title(json["title"])
+    if "type" in json:
+        question.set_type(json["type"])
+    if "questionnaire_id" in json:
+        question.set_questionnaire_id(json["questionnaire_id"])
+    db.session.commit()
+    return question.to_json()
