@@ -137,3 +137,24 @@ def edit_question_row(json):
         question.set_questionnaire_id(json["questionnaire_id"])
     db.session.commit()
     return question.to_json()
+
+tasks=[
+{
+'id':1,
+'title':'Courses',
+'description':'Salade,Oignons,Pommes,Clementines',
+'done':True
+},
+{
+'id':2,
+'title':'ApprendreREST',
+'description':'Apprendremoncoursetcomprendrelesexemples',
+'done':False
+},
+{
+'id':3,
+'title':'ApprendreAjax',
+'description':'RevoirlesexemplesetecrireunclientRESTJSavecAjax',
+'done':False
+}
+]
