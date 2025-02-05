@@ -1,62 +1,65 @@
-
-
-function clear(element){
+function clearContent(element){
     while(element.firstChild){
         element.removeChild(element.firstChild);
     }
 }
      
 let button = document.getElementById('button');
-console.log(button);
 button.addEventListener('click', function(){
     refreshQuestionnaireList();
 });
 
 function remplirQuestionnaires(json){
     let questionnaires = document.getElementById('questionnaires');
-    clear(questionnaires);
     let liste = document.createElement('ul');
     questionnaires.append(liste);
     json.forEach(questionnaire => {
         let questionnaire_li = document.createElement('li');
         questionnaire_li.textContent = questionnaire.name;
+        questionnaire_li.addEventListener('click', function(){
+            // TODO -> Ajouter un lien pour afficher le détail
+            console.log("Détail Questionnaire n° " + questionnaire.id + "\n" + questionnaire.uri);
+            getDetailQuestionnaire(questionnaire);
+        });
         liste.append(questionnaire_li);
     });
 }
 
-    // function remplirTaches(repjson) {
-    //   console.log(JSON.stringify(repjson));
-    //   $('#questionnaires').empty();
-    //   $('#questionnaires').append($('<ul>'));
-    //   for(questionnaire of repjson){
-    //       console.log(questionnaire);
-    //       $('#questionnaires ul')
-    //             .append($('<li>')
-    //             .append($('<a>')
-    //             .text(questionnaire.name)
-    //                 ).on("click", questionnaire, details)
-    //             );
-    //     }
-    //   }
+function onerror(err) {
+  let error = document.createElement("b");
+  error.textContent = "Impossible de récupérer les questionnaires à réaliser !";
+  questionnaires = document.getElementById('questionnaires');
+  questionnaires.append(error);
+  questionnaires.textContent = err;
+}
 
-      function onerror(err) {
-          $("#questionnaires").html("<b>Impossible de récupérer les questionnaires à réaliser !</b>"+err);
-      }
+function refreshQuestionnaireList(){
+    let questionnaires = document.getElementById('questionnaires');
+    clearContent(questionnaires);
+    requete = "http://127.0.0.1:5000/api/questionnaires";
+    fetch(requete)
+    .then(response => {
+        if (response.ok) return response.json();
+        else throw new Error('Problème ajax: '+response.status);
+        }
+    )
+    .then(remplirQuestionnaires)
+    .catch(onerror);
+}
 
-    function refreshQuestionnaireList(){
-        $("#currentQuestionnaire").empty();
-        requete = "http://127.0.0.1:5000/api/questionnaires";
-        fetch(requete)
-        .then(response => {
-                  if (response.ok) return response.json();
-                  else throw new Error('Problème ajax: '+response.status);
-                }
-            )
-        // .then(remplirTaches)
-        .then(remplirQuestionnaires)
-        .catch(onerror);
-      }
-
+function getDetailQuestionnaire(questionnaire) {
+    console.log(questionnaire);
+    requete = "http://127.0.0.1:5000" + questionnaire.uri;
+    console.log(requete);
+    fetch(requete)
+    .then(response => {
+        if (response.ok) return response.json();
+        else throw new Error('Problème ajax: '+response.status);
+        }
+    )
+    .then(json => console.log(json))
+    .catch(onerror);
+}
 
     // function details(event){
     //     $("#currentQuestionnaire").empty();

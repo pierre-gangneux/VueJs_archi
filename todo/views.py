@@ -205,6 +205,31 @@ def not_found(error):
     return make_response(jsonify({'error': 'Bad request'}), 400)
 
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 def make_public_task(task):
     new_task = {}
     for field in task :
