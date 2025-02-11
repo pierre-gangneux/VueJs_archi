@@ -69,32 +69,36 @@ function formQuestionnaire(isnew){
 
     let titreQuestionnaire = document.createElement('h1');
     titreQuestionnaire.textContent = "Titre";
-    titreQuestionnaire.setAttribute('id', 'titreQuestionnaire');
+    titreQuestionnaire.id = 'titreQuestionnaire';
     currentQuestionnaire.append(titreQuestionnaire);
 
     let titreQuestionnaireInput = document.createElement('input');
-    titreQuestionnaireInput.setAttribute('type', 'text');
-    titreQuestionnaireInput.setAttribute('id', 'titreQuestionnaireInput');
+    titreQuestionnaireInput.type = 'text';
+    titreQuestionnaireInput.id = 'titreQuestionnaireInput';
     titreQuestionnaire.append(titreQuestionnaireInput);
     
     let questionsQuestionnaire = document.createElement('ul');
-    questionsQuestionnaire.setAttribute('id', 'listeQuestions');
+    questionsQuestionnaire.id = 'listeQuestions';
     currentQuestionnaire.append(questionsQuestionnaire);
 
     let save = document.createElement("button");
     currentQuestionnaire.append(save);
 
     let saveImg = document.createElement("img");
-    saveImg.setAttribute('id', 'saveQuestionnaire');
-    saveImg.setAttribute('src', 'img/save.png');
+    saveImg.id = 'saveQuestionnaire';
+    saveImg.src = 'img/save.png';
     save.append(saveImg);
 
     if (isnew){
         // save envoie une requête POST pour enregistrer ce nouveau questionnaire
+        saveImg.alt = 'Enregistrer le questionnaire';
+        save.onclick = function() {
+            saveNewQuestionnaire();
+        }
     }
     else{
         // save envoie une requête PUT pour enregistrer la modification du questionnaire
-        saveImg.setAttribute('alt', 'Sauvegarder le changement');
+        saveImg.alt = 'Sauvegarder le changement';
         save.onclick = function() {
             saveModifiedQuestionnaire();
         };
@@ -103,7 +107,7 @@ function formQuestionnaire(isnew){
 
 function fillFromQuestionnaire(json){
     document.getElementById('titreQuestionnaire').setAttribute('questionnaireId', json.id);
-    document.getElementById('titreQuestionnaireInput').setAttribute('value', json.name);
+    document.getElementById('titreQuestionnaireInput').value = json.name;
     let questionsQuestionnaire = document.getElementById('listeQuestions');
     json.questions.forEach(question => {
         // Création de l'élément li
@@ -140,66 +144,54 @@ function saveModifiedQuestionnaire(){
         }
         else throw new Error('Problème ajax: ' + response.status);
     })
-    .then(json => titreQuestionnaireInput.setAttribute('value', json.name))
+    .then(json => titreQuestionnaireInput.value = json.name)
     .catch(res => console.log(res));
 }
 
-    // class Task{
-    //     constructor(title, description, done, uri){
-    //         this.title = title;
-    //         this.description = description;
-    //         this.done = done;
-    //         this.uri = uri;
-    //         console.log(this.uri);
-    //     }
-    // }
+document.querySelector("#tools #add").onclick = formQuestionnaire;
 
+// curl -i -H "Content-Type: application/json" -X POST -d '{"name":"test"}' http://localhost:5000/api/questionnaires
+function saveNewQuestionnaire(){
+    let titreQuestionnaireInput = document.getElementById('titreQuestionnaireInput');
+    // Création de la requête permettant de modifier le questionnaire
+    fetch("http://localhost:5000/api/questionnaires",{
+        headers: {'Content-Type': 'application/json'},
+        method: "POST",
+        body: `{"name":"${titreQuestionnaireInput.value}"}`
+    })
+    .then(response => {
+        if (response.ok) {
+            console.log('Insert Success');
+            refreshQuestionnaireList();
+            return response.json();
+        }
+        else throw new Error('Problème ajax: ' + response.status);
+    })
+    .then(json => titreQuestionnaireInput.value = json.name)
+    .catch(res => console.log(res));
+}
 
-    // $("#tools #add").on("click", formTask);
-    // $('#tools #del').on('click', delTask);
-
-    // function formTask(isnew){
-    //     $("#currentQuestionnaire").empty();
-    //     $("#currentQuestionnaire")
-    //         .append($('<span>Titre<input type="text" id="titre"><br></span>'))
-    //         .append($('<span>Description<input type="text" id="descr"><br></span>'))
-    //         .append($('<span>Done<input type="checkbox" id="done"><br></span>'))
-    //         .append($('<span><input type="hidden" id="turi"><br></span>'))
-    //         .append(isnew?$('<span><input type="button" value="Save Task"><br></span>').on("click", saveNewTask)
-    //                      :$('<span><input type="button" value="Modify Task"><br></span>').on("click", saveModifiedTask)
-    //             );
-    //     }
-
-    // function fillFormTask(t){
-    //     $("#currentQuestionnaire #titre").val(t.title);
-    //     $("#currentQuestionnaire #descr").val(t.description);
-    //      t.uri=(t.uri == undefined)?"http://127.0.0.1:5000/todo/api/v1.0/tasks"+t.id:t.uri;
-    //      $("#currentQuestionnaire #turi").val(t.uri);
-    //     t.done?$("#currentQuestionnaire #done").prop('checked', true):
-    //     $("#currentQuestionnaire #done").prop('checked', false);
-    // }
-
-    // function saveNewTask(){
-    //     var task = new Task(
-    //         $("#currentQuestionnaire #titre").val(),
-    //         $("#currentQuestionnaire #descr").val(),
-    //         $("#currentQuestionnaire #done").is(':checked')
-    //         );
-    //     console.log(JSON.stringify(task));
-    //     fetch("http://127.0.0.1:5000/todo/api/v1.0/tasks",{
-    //     headers: {
-    //       'Accept': 'application/json',
-    //       'Content-Type': 'application/json'
-    //     },
-    //     method: "POST",
-    //     body: JSON.stringify(task)
-    //         })
-    //     .then(res => { console.log('Save Success') ;
-    //                    $("#result").text(res['contenu']);
-    //                    refreshQuestionnaireList();
-    //                })
-    //     .catch( res => { console.log(res) });
-    // }
+// function saveNewTask(){
+//     var task = new Task(
+//         $("#currentQuestionnaire #titre").val(),
+//         $("#currentQuestionnaire #descr").val(),
+//         $("#currentQuestionnaire #done").is(':checked')
+//         );
+//     console.log(JSON.stringify(task));
+//     fetch("http://127.0.0.1:5000/todo/api/v1.0/tasks",{
+//     headers: {
+//       'Accept': 'application/json',
+//       'Content-Type': 'application/json'
+//     },
+//     method: "POST",
+//     body: JSON.stringify(task)
+//         })
+//     .then(res => { console.log('Save Success') ;
+//                    $("#result").text(res['contenu']);
+//                    refreshQuestionnaireList();
+//                })
+//     .catch( res => { console.log(res) });
+// }
 
 //     function delTask(){
 //         if ($("#currentQuestionnaire #turi").val()){
@@ -217,3 +209,15 @@ function saveModifiedQuestionnaire(){
 //     }
 //   }
 
+
+// class Task{
+//     constructor(title, description, done, uri){
+//         this.title = title;
+//         this.description = description;
+//         this.done = done;
+//         this.uri = uri;
+//         console.log(this.uri);
+//     }
+// }
+
+// $('#tools #del').on('click', delTask);
