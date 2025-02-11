@@ -56,7 +56,6 @@ def delete_questionnaire_row(id_questionnaire):
 
 def edit_questionnaire_row(json):
     questionnaire = Questionnaire.query.filter(Questionnaire.id == int(json["questionnaire_id"])).first()
-    print(questionnaire)
     if questionnaire is None:
         return None
     if "name" in json:

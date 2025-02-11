@@ -123,12 +123,12 @@ def edit_questionnaire():
     Returns:
         json: le json du questionnaire une fois modifier
     """
-    print(request.json, len(request.json))
     if not request.json or not 'questionnaire_id' in request.json or len(request.json) <= 1:
         abort(400)
     questionnaire = edit_questionnaire_row(request.json)
     if questionnaire is None:
         abort(404)
+    questionnaire["uri"] = "/api/questionnaire/"+str(questionnaire["id"])+"/questions"
     return jsonify(questionnaire), 200
 
 # curl -i -H "Content-Type: application/json" -X PUT -d '{"question_id":1, "title":"testQ", "type":"text", "questionnaire_id":1}' http://localhost:5000/api/questions
