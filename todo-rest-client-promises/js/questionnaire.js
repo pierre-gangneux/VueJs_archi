@@ -10,9 +10,8 @@ button.addEventListener('click', function(){
 });
 
 function remplirQuestionnaires(json){
-    let questionnaires = document.getElementById('questionnaires');
     let liste = document.createElement('ul');
-    questionnaires.append(liste);
+    document.getElementById('questionnaires').append(liste);
     json.forEach(questionnaire => {
         let questionnaire_li = document.createElement('li');
         questionnaire_li.textContent = questionnaire.name;
@@ -24,42 +23,39 @@ function remplirQuestionnaires(json){
 }
 
 function onerror(err) {
-  let error = document.createElement("b");
-  error.textContent = "Impossible de récupérer les questionnaires à réaliser !";
-  questionnaires = document.getElementById('questionnaires');
-  questionnaires.appendChild(error);
-  questionnaires.appendChild(document.createTextNode(" " + err));
+    // A refaire, faire une notification d'erreur à la place
+
+    console.log("Impossible de récupérer les questionnaires à réaliser ! " + err);
+
+    // let error = document.createElement("b");
+    // error.textContent = "Impossible de récupérer les questionnaires à réaliser !";
+    // let questionnaires = document.getElementById('questionnaires');
+    // questionnaires.appendChild(error);
+    // questionnaires.appendChild(document.createTextNode(' ' + err));
 }
 
 function refreshQuestionnaireList(){
-    let questionnaires = document.getElementById('questionnaires');
-    clearContent(questionnaires);
-    requete = "http://127.0.0.1:5000/api/questionnaires";
-    fetch(requete)
+    clearContent(document.getElementById('questionnaires'));
+    fetch("http://127.0.0.1:5000/api/questionnaires")
     .then(response => {
         if (response.ok) return response.json();
-        else throw new Error('Problème ajax: '+response.status);
-        }
-    )
+        else throw new Error('Problème ajax: ' + response.status);
+    })
     .then(remplirQuestionnaires)
     .catch(onerror);
 }
 
 function getDetailQuestionnaire(questionnaire) {
-    requete = "http://127.0.0.1:5000" + questionnaire.uri;
-    fetch(requete)
+    fetch("http://127.0.0.1:5000" + questionnaire.uri)
     .then(response => {
         if (response.ok) return response.json();
-        else throw new Error('Problème ajax: '+response.status);
-        }
-    )
-    .then(
-        jsonQuestions => {
+        else throw new Error('Problème ajax: ' + response.status);
+    })
+    .then(jsonQuestions => {
             questionnaire.questions = jsonQuestions;
-            details(questionnaire)
-        }
-    )
-    .catch(onerror);
+            details(questionnaire);
+    })
+    .catch(res => console.log(res));
 }
 
 function details(json){
@@ -72,7 +68,7 @@ function formQuestionnaire(isnew){
     clearContent(currentQuestionnaire);
 
     let titreQuestionnaire = document.createElement('h1');
-    titreQuestionnaire.textContent = "Titre"
+    titreQuestionnaire.textContent = "Titre";
     titreQuestionnaire.setAttribute('id', 'titreQuestionnaire');
     currentQuestionnaire.append(titreQuestionnaire);
 
@@ -87,12 +83,18 @@ function formQuestionnaire(isnew){
 
     let save = document.createElement("button");
     currentQuestionnaire.append(save);
+
+    let saveImg = document.createElement("img");
+    saveImg.setAttribute('id', 'saveQuestionnaire');
+    saveImg.setAttribute('src', 'img/save.png');
+    save.append(saveImg);
+
     if (isnew){
         // save envoie une requête POST pour enregistrer ce nouveau questionnaire
     }
     else{
         // save envoie une requête PUT pour enregistrer la modification du questionnaire
-        save.textContent = "Sauvegarder le changement";
+        saveImg.setAttribute('alt', 'Sauvegarder le changement');
         save.onclick = function() {
             saveModifiedQuestionnaire();
         };
@@ -100,65 +102,47 @@ function formQuestionnaire(isnew){
 }
 
 function fillFromQuestionnaire(json){
-    let titreQuestionnaire = document.getElementById('titreQuestionnaire');
-    titreQuestionnaire.setAttribute('questionnaireId', json.id)
-    let titreQuestionnaireInput = document.getElementById('titreQuestionnaireInput');
-    titreQuestionnaireInput.setAttribute('value', json.name);
+    document.getElementById('titreQuestionnaire').setAttribute('questionnaireId', json.id);
+    document.getElementById('titreQuestionnaireInput').setAttribute('value', json.name);
     let questionsQuestionnaire = document.getElementById('listeQuestions');
     json.questions.forEach(question => {
+        // Création de l'élément li
         let liQuestion = document.createElement('li');
         liQuestion.style.border = "0.1em solid black";
+        questionsQuestionnaire.append(liQuestion);
+
+        // Création de l'élément du titre de la question
         let titreQuestion = document.createElement('p');
         titreQuestion.textContent = question.title;
+        liQuestion.append(titreQuestion);
+
+        // Création de l'élément du type de la question
         let typeQuestion = document.createElement('p');
         typeQuestion.textContent = question.type;
-        liQuestion.append(titreQuestion);
         liQuestion.append(typeQuestion);
-        questionsQuestionnaire.append(liQuestion);
     });
 }
-// curl -i -H "Content-Type: application/json" -X PUT -d '{"questionnaire_id":1,"name":"new_name"}' http://localhost:5000/api/questionnaires
+
 function saveModifiedQuestionnaire(){
     let titreQuestionnaireInput = document.getElementById('titreQuestionnaireInput');
     let titreQuestionnaire = document.getElementById('titreQuestionnaire');
+    // Création de la requête permettant de modifier le questionnaire
     fetch("http://localhost:5000/api/questionnaires",{
-        headers: {
-          'Content-Type': 'application/json'
-        },
+        headers: {'Content-Type': 'application/json'},
         method: "PUT",
         body: `{"questionnaire_id":${titreQuestionnaire.getAttribute('questionnaireId')},"name":"${titreQuestionnaireInput.value}"}`
     })
     .then(response => {
-        console.log('Update Success');
-        refreshQuestionnaireList();
-        if (response.ok) return response.json();
-        else throw new Error('Problème ajax: '+response.status);
+        if (response.ok) {
+            console.log('Update Success');
+            refreshQuestionnaireList();
+            return response.json();
+        }
+        else throw new Error('Problème ajax: ' + response.status);
     })
     .then(json => titreQuestionnaireInput.setAttribute('value', json.name))
-    .catch( res => { console.log(res) });
+    .catch(res => console.log(res));
 }
-
-// function saveModifiedTask(){
-//     var task = new Task(
-//         $("#currentQuestionnaire #titre").val(),
-//         $("#currentQuestionnaire #descr").val(),
-//         $("#currentQuestionnaire #done").is(':checked'),
-//         $("#currentQuestionnaire #turi").val()
-//         );
-//     console.log("PUT");
-//     console.log(task.uri);
-//     console.log(JSON.stringify(task));
-    // fetch(task.uri,{
-    // headers: {
-    //   'Accept': 'application/json',
-    //   'Content-Type': 'application/json'
-    // },
-    // method: "PUT",
-    // body: JSON.stringify(task)
-    //     })
-//     .then(res => { console.log('Update Success');  refreshQuestionnaireList();} )
-//     .catch( res => { console.log(res) });
-// }
 
     // class Task{
     //     constructor(title, description, done, uri){
