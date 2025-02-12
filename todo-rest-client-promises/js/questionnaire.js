@@ -82,6 +82,7 @@ function formQuestionnaire(isnew){
     currentQuestionnaire.append(questionsQuestionnaire);
 
     let save = document.createElement("button");
+    save.id = "saveButton";
     currentQuestionnaire.append(save);
 
     let saveImg = document.createElement("img");
@@ -167,31 +168,40 @@ function saveNewQuestionnaire(){
         }
         else throw new Error('Problème ajax: ' + response.status);
     })
-    .then(json => titreQuestionnaireInput.value = json.name)
+    .then(json => {
+        document.getElementById('titreQuestionnaire').setAttribute('questionnaireId', json.id);
+        titreQuestionnaireInput.value = json.name;
+        document.getElementById('saveButton').onclick = function() {
+            saveModifiedQuestionnaire();
+        };
+    })
     .catch(res => console.log(res));
 }
 
-// function saveNewTask(){
-//     var task = new Task(
-//         $("#currentQuestionnaire #titre").val(),
-//         $("#currentQuestionnaire #descr").val(),
-//         $("#currentQuestionnaire #done").is(':checked')
-//         );
-//     console.log(JSON.stringify(task));
-//     fetch("http://127.0.0.1:5000/todo/api/v1.0/tasks",{
-//     headers: {
-//       'Accept': 'application/json',
-//       'Content-Type': 'application/json'
-//     },
-//     method: "POST",
-//     body: JSON.stringify(task)
-//         })
-//     .then(res => { console.log('Save Success') ;
-//                    $("#result").text(res['contenu']);
-//                    refreshQuestionnaireList();
-//                })
-//     .catch( res => { console.log(res) });
-// }
+function deleteQuestionnaire(){
+    let titreQuestionnaire = document.getElementById('titreQuestionnaire');
+    // Création de la requête permettant de modifier le questionnaire
+    if (titreQuestionnaire){
+        fetch("http://localhost:5000/api/questionnaires",{
+            headers: {'Content-Type': 'application/json'},
+            method: "DELETE",
+            body: `{"questionnaire_id":${titreQuestionnaire.getAttribute('questionnaireId')}}`
+        })
+        .then(response => {
+            if (response.ok) {
+                console.log('Delete Success');
+                refreshQuestionnaireList();
+                return response.json();
+            }
+            else throw new Error('Problème ajax: ' + response.status);
+        })
+        .then(json => {
+            console.log("Supression du questionnaire " + json.name)
+            clearContent(document.getElementById('currentQuestionnaire'));
+        })
+        .catch(res => console.log(res));
+    }
+}
 
 //     function delTask(){
 //         if ($("#currentQuestionnaire #turi").val()){
@@ -209,15 +219,4 @@ function saveNewQuestionnaire(){
 //     }
 //   }
 
-
-// class Task{
-//     constructor(title, description, done, uri){
-//         this.title = title;
-//         this.description = description;
-//         this.done = done;
-//         this.uri = uri;
-//         console.log(this.uri);
-//     }
-// }
-
-// $('#tools #del').on('click', delTask);
+document.querySelector("#tools #del").onclick = deleteQuestionnaire;
