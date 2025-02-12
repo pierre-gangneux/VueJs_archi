@@ -22,10 +22,14 @@ function remplirQuestionnaires(json){
     });
 }
 
-function onerror(err) {
+function onerror(err, msg) {
     // A refaire, faire une notification d'erreur à la place
-
-    console.log('Impossible de récupérer les questionnaires à réaliser ! ' + err);
+    if (msg){
+        console.log(`${msg} - ${err}`);
+    }
+    else{
+        console.log(err);
+    }
 
     // let error = document.createElement('b');
     // error.textContent = 'Impossible de récupérer les questionnaires à réaliser !';
@@ -42,7 +46,7 @@ function refreshQuestionnaireList(){
         else throw new Error('Problème ajax: ' + response.status);
     })
     .then(remplirQuestionnaires)
-    .catch(onerror);
+    .catch(err => onerror(err, 'Impossible de récupérer les questionnaires à réaliser !'));
 }
 
 function getDetailQuestionnaire(questionnaire) {
@@ -55,7 +59,7 @@ function getDetailQuestionnaire(questionnaire) {
             questionnaire.questions = jsonQuestions;
             details(questionnaire);
     })
-    .catch(res => console.log(res));
+    .catch(onerror);
 }
 
 function details(json){
@@ -157,6 +161,9 @@ function fillFromQuestionnaire(json){
 
         let saveQuestion = document.createElement('img');
         saveQuestion.src = 'img/save.png';
+        saveQuestion.onclick = function(){
+            saveModifiedQuestion(question);
+        }
         boutons.append(saveQuestion);
     });
 }
@@ -179,7 +186,7 @@ function saveModifiedQuestionnaire(){
         else throw new Error('Problème ajax: ' + response.status);
     })
     .then(json => titreQuestionnaireInput.value = json.name)
-    .catch(res => console.log(res));
+    .catch(onerror);
 }
 
 document.querySelector('#tools #add').onclick = formQuestionnaire;
@@ -205,7 +212,7 @@ function saveNewQuestionnaire(){
         titreQuestionnaireInput.value = json.name;
         document.getElementById('saveQuestionnaire').onclick = saveModifiedQuestionnaire();
     })
-    .catch(res => console.log(res));
+    .catch(onerror);
 }
 
 function deleteQuestionnaire(){
@@ -229,14 +236,13 @@ function deleteQuestionnaire(){
             console.log('Supression du questionnaire ' + json.name);
             clearContent(document.getElementById('currentQuestionnaire'));
         })
-        .catch(res => console.log(res));
+        .catch(onerror);
     }
 }
 
 document.querySelector('#tools #del').onclick = deleteQuestionnaire;
 
 function deleteQuestion(json){
-    console.log(json, json.id);
     fetch('http://localhost:5000/api/questions',{
         headers: {'Content-Type': 'application/json'},
         method: 'DELETE',
@@ -254,5 +260,41 @@ function deleteQuestion(json){
         console.log('Supression de la question ' + json.title);
         document.getElementById('question'+json.id).remove();
     })
-    .catch(res => console.log(res));
+    .catch(onerror);
+}
+
+function saveModifiedQuestion(json){
+    let titreQuestion = document.getElementById('titreQuestion'+json.id);
+    let typeQuestion = document.getElementById('typeQuestion'+json.id);
+    let bodyRequest = {'question_id':json.id};
+    if (json.title != titreQuestion.value){
+        bodyRequest.title = titreQuestion.value;
+    }
+    if (json.type != typeQuestion.value){
+        bodyRequest.type = typeQuestion.value;
+    }
+    if (Object.keys(bodyRequest).length > 1){
+        // Création de la requête permettant de modifier la question
+        fetch('http://localhost:5000/api/questions',{
+            headers: {'Content-Type': 'application/json'},
+            method: 'PUT',
+            body: JSON.stringify(bodyRequest)
+        })
+        .then(response => {
+            if (response.ok) {
+                console.log('Update Success');
+                return response.json();
+            }
+            else throw new Error('Problème ajax: ' + response.status);
+        })
+        .then(response => {
+            if (json.title != response.title){
+                titreQuestion.value = response.title;
+            }
+            if (json.type != response.type){
+                typeQuestion.value = response.type;
+            }
+        })
+        .catch(onerror);
+    }
 }
