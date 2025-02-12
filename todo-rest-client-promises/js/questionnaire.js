@@ -3,7 +3,7 @@ function clearContent(element){
         element.removeChild(element.firstChild);
     }
 }
-     
+
 let button = document.getElementById('button');
 button.addEventListener('click', function(){
     refreshQuestionnaireList();
@@ -25,10 +25,10 @@ function remplirQuestionnaires(json){
 function onerror(err) {
     // A refaire, faire une notification d'erreur à la place
 
-    console.log("Impossible de récupérer les questionnaires à réaliser ! " + err);
+    console.log('Impossible de récupérer les questionnaires à réaliser ! ' + err);
 
-    // let error = document.createElement("b");
-    // error.textContent = "Impossible de récupérer les questionnaires à réaliser !";
+    // let error = document.createElement('b');
+    // error.textContent = 'Impossible de récupérer les questionnaires à réaliser !';
     // let questionnaires = document.getElementById('questionnaires');
     // questionnaires.appendChild(error);
     // questionnaires.appendChild(document.createTextNode(' ' + err));
@@ -36,7 +36,7 @@ function onerror(err) {
 
 function refreshQuestionnaireList(){
     clearContent(document.getElementById('questionnaires'));
-    fetch("http://127.0.0.1:5000/api/questionnaires")
+    fetch('http://127.0.0.1:5000/api/questionnaires')
     .then(response => {
         if (response.ok) return response.json();
         else throw new Error('Problème ajax: ' + response.status);
@@ -46,7 +46,7 @@ function refreshQuestionnaireList(){
 }
 
 function getDetailQuestionnaire(questionnaire) {
-    fetch("http://127.0.0.1:5000" + questionnaire.uri)
+    fetch('http://127.0.0.1:5000' + questionnaire.uri)
     .then(response => {
         if (response.ok) return response.json();
         else throw new Error('Problème ajax: ' + response.status);
@@ -68,7 +68,7 @@ function formQuestionnaire(isnew){
     clearContent(currentQuestionnaire);
 
     let titreQuestionnaire = document.createElement('h1');
-    titreQuestionnaire.textContent = "Titre";
+    titreQuestionnaire.textContent = 'Titre';
     titreQuestionnaire.id = 'titreQuestionnaire';
     currentQuestionnaire.append(titreQuestionnaire);
 
@@ -81,25 +81,24 @@ function formQuestionnaire(isnew){
     questionsQuestionnaire.id = 'listeQuestions';
     currentQuestionnaire.append(questionsQuestionnaire);
 
-    let save = document.createElement("button");
-    save.id = "saveButton";
-    currentQuestionnaire.append(save);
-
-    let saveImg = document.createElement("img");
-    saveImg.id = 'saveQuestionnaire';
-    saveImg.src = 'img/save.png';
-    save.append(saveImg);
+    let save = document.getElementById('saveQuestionnaire');
+    if (!save){
+        save = document.createElement('img');
+        save.id = 'saveQuestionnaire';
+        save.src = 'img/save.png';
+        document.getElementById('tools').append(save);
+    }
 
     if (isnew){
         // save envoie une requête POST pour enregistrer ce nouveau questionnaire
-        saveImg.alt = 'Enregistrer le questionnaire';
+        save.alt = 'Enregistrer le questionnaire';
         save.onclick = function() {
             saveNewQuestionnaire();
         }
     }
     else{
         // save envoie une requête PUT pour enregistrer la modification du questionnaire
-        saveImg.alt = 'Sauvegarder le changement';
+        save.alt = 'Sauvegarder le changement';
         save.onclick = function() {
             saveModifiedQuestionnaire();
         };
@@ -113,18 +112,52 @@ function fillFromQuestionnaire(json){
     json.questions.forEach(question => {
         // Création de l'élément li
         let liQuestion = document.createElement('li');
-        liQuestion.style.border = "0.1em solid black";
+        liQuestion.id = 'question'+question.id;
+        liQuestion.style.border = '0.1em solid black';
         questionsQuestionnaire.append(liQuestion);
 
         // Création de l'élément du titre de la question
-        let titreQuestion = document.createElement('p');
-        titreQuestion.textContent = question.title;
-        liQuestion.append(titreQuestion);
+        let titre = document.createElement('div');
+        liQuestion.append(titre);
+
+        let titreQuestion = document.createElement('label');
+        titreQuestion.setAttribute('for', 'titreQuestion'+question.id);
+        titreQuestion.textContent = 'Titre : '
+        titre.append(titreQuestion);
+
+        let titreQuestionInput = document.createElement('input');
+        titreQuestionInput.id = 'titreQuestion'+question.id;
+        titreQuestionInput.value = question.title;
+        titre.append(titreQuestionInput);
 
         // Création de l'élément du type de la question
-        let typeQuestion = document.createElement('p');
-        typeQuestion.textContent = question.type;
-        liQuestion.append(typeQuestion);
+        let type = document.createElement('div');
+        liQuestion.append(type);
+
+        let typeQuestion = document.createElement('label');
+        typeQuestion.setAttribute('for', 'typeQuestion'+question.id);
+        typeQuestion.textContent = 'Type : '
+        type.append(typeQuestion);
+
+        let typeQuestionInput = document.createElement('input');
+        typeQuestionInput.id = 'typeQuestion'+question.id;
+        typeQuestionInput.value = question.type;
+        type.append(typeQuestionInput);
+
+        // Boutons de gestion de la question
+        let boutons = document.createElement('div');
+        liQuestion.append(boutons);
+
+        let deleteQuestionButton = document.createElement('img');
+        deleteQuestionButton.src = 'img/delete.png';
+        deleteQuestionButton.onclick = function(){
+            deleteQuestion(question);
+        }
+        boutons.append(deleteQuestionButton);
+
+        let saveQuestion = document.createElement('img');
+        saveQuestion.src = 'img/save.png';
+        boutons.append(saveQuestion);
     });
 }
 
@@ -132,10 +165,10 @@ function saveModifiedQuestionnaire(){
     let titreQuestionnaireInput = document.getElementById('titreQuestionnaireInput');
     let titreQuestionnaire = document.getElementById('titreQuestionnaire');
     // Création de la requête permettant de modifier le questionnaire
-    fetch("http://localhost:5000/api/questionnaires",{
+    fetch('http://localhost:5000/api/questionnaires',{
         headers: {'Content-Type': 'application/json'},
-        method: "PUT",
-        body: `{"questionnaire_id":${titreQuestionnaire.getAttribute('questionnaireId')},"name":"${titreQuestionnaireInput.value}"}`
+        method: 'PUT',
+        body: `{'questionnaire_id':${titreQuestionnaire.getAttribute('questionnaireId')},'name':'${titreQuestionnaireInput.value}'}`
     })
     .then(response => {
         if (response.ok) {
@@ -149,16 +182,15 @@ function saveModifiedQuestionnaire(){
     .catch(res => console.log(res));
 }
 
-document.querySelector("#tools #add").onclick = formQuestionnaire;
+document.querySelector('#tools #add').onclick = formQuestionnaire;
 
-// curl -i -H "Content-Type: application/json" -X POST -d '{"name":"test"}' http://localhost:5000/api/questionnaires
 function saveNewQuestionnaire(){
     let titreQuestionnaireInput = document.getElementById('titreQuestionnaireInput');
     // Création de la requête permettant de modifier le questionnaire
-    fetch("http://localhost:5000/api/questionnaires",{
+    fetch('http://localhost:5000/api/questionnaires',{
         headers: {'Content-Type': 'application/json'},
-        method: "POST",
-        body: `{"name":"${titreQuestionnaireInput.value}"}`
+        method: 'POST',
+        body: `{'name':'${titreQuestionnaireInput.value}'}`
     })
     .then(response => {
         if (response.ok) {
@@ -171,9 +203,7 @@ function saveNewQuestionnaire(){
     .then(json => {
         document.getElementById('titreQuestionnaire').setAttribute('questionnaireId', json.id);
         titreQuestionnaireInput.value = json.name;
-        document.getElementById('saveButton').onclick = function() {
-            saveModifiedQuestionnaire();
-        };
+        document.getElementById('saveQuestionnaire').onclick = saveModifiedQuestionnaire();
     })
     .catch(res => console.log(res));
 }
@@ -182,10 +212,10 @@ function deleteQuestionnaire(){
     let titreQuestionnaire = document.getElementById('titreQuestionnaire');
     // Création de la requête permettant de modifier le questionnaire
     if (titreQuestionnaire){
-        fetch("http://localhost:5000/api/questionnaires",{
+        fetch('http://localhost:5000/api/questionnaires',{
             headers: {'Content-Type': 'application/json'},
-            method: "DELETE",
-            body: `{"questionnaire_id":${titreQuestionnaire.getAttribute('questionnaireId')}}`
+            method: 'DELETE',
+            body: `{'questionnaire_id':${titreQuestionnaire.getAttribute('questionnaireId')}}`
         })
         .then(response => {
             if (response.ok) {
@@ -196,27 +226,33 @@ function deleteQuestionnaire(){
             else throw new Error('Problème ajax: ' + response.status);
         })
         .then(json => {
-            console.log("Supression du questionnaire " + json.name)
+            console.log('Supression du questionnaire ' + json.name);
             clearContent(document.getElementById('currentQuestionnaire'));
         })
         .catch(res => console.log(res));
     }
 }
 
-//     function delTask(){
-//         if ($("#currentQuestionnaire #turi").val()){
-//         url = $("#currentQuestionnaire #turi").val();
-//         fetch(url,{
-//         headers: {
-//           'Accept': 'application/json',
-//           'Content-Type': 'application/json'
-//         },
-//         method: "DELETE"
-//             })
-//         .then(res => { console.log('Delete Success:' + res); } )
-//         .then(refreshQuestionnaireList)
-//         .catch( res => { console.log(res);  });
-//     }
-//   }
+document.querySelector('#tools #del').onclick = deleteQuestionnaire;
 
-document.querySelector("#tools #del").onclick = deleteQuestionnaire;
+function deleteQuestion(json){
+    console.log(json, json.id);
+    fetch('http://localhost:5000/api/questions',{
+        headers: {'Content-Type': 'application/json'},
+        method: 'DELETE',
+        body: `{'question_id':'${json.id}'}`
+    })
+    .then(response => {
+        if (response.ok) {
+            console.log('Delete Success');
+            refreshQuestionnaireList();
+            return response.json();
+        }
+        else throw new Error('Problème ajax: ' + response.status);
+    })
+    .then(json => {
+        console.log('Supression de la question ' + json.title);
+        document.getElementById('question'+json.id).remove();
+    })
+    .catch(res => console.log(res));
+}
