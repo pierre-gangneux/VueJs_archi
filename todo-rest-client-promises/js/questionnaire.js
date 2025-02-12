@@ -64,7 +64,7 @@ function getDetailQuestionnaire(questionnaire) {
 
 function details(json){
     formQuestionnaire();
-    fillFromQuestionnaire(json);
+    fillFormQuestionnaire(json);
 }
 
 function formQuestionnaire(isnew){
@@ -109,62 +109,104 @@ function formQuestionnaire(isnew){
     }
 }
 
-function fillFromQuestionnaire(json){
+function formQuestion(){
+    // Création de l'élément li
+    let liQuestion = document.createElement('li');
+    liQuestion.id = 'questionNew';
+    liQuestion.style.border = '0.1em solid black';
+    document.getElementById('listeQuestions').append(liQuestion);
+
+    // Création de l'élément du titre de la question
+    let titre = document.createElement('div');
+    liQuestion.append(titre);
+
+    let titreQuestion = document.createElement('label');
+    titreQuestion.setAttribute('for', 'titreQuestionNew');
+    titreQuestion.setAttribute('id', 'titreQuestionLabelNew');
+    titreQuestion.textContent = 'Titre : '
+    titre.append(titreQuestion);
+
+    let titreQuestionInput = document.createElement('input');
+    titreQuestionInput.id = 'titreQuestionNew';
+    titre.append(titreQuestionInput);
+
+    // Création de l'élément du type de la question
+    let type = document.createElement('div');
+    liQuestion.append(type);
+
+    let typeQuestion = document.createElement('label');
+    typeQuestion.setAttribute('for', 'typeQuestionNew');
+    typeQuestion.setAttribute('id', 'typeQuestionLabelNew');
+    typeQuestion.textContent = 'Type : ';
+    type.append(typeQuestion);
+
+    let typeQuestionInput = document.createElement('input');
+    typeQuestionInput.id = 'typeQuestionNew';
+    type.append(typeQuestionInput);
+
+    // Boutons de gestion de la question
+    let boutons = document.createElement('div');
+    boutons.id = 'boutonsQuestionNew';
+    liQuestion.append(boutons);
+
+    let saveQuestion = document.createElement('img');
+    saveQuestion.src = 'img/save.png';
+    saveQuestion.onclick = function(){
+        // saveNewQuestion
+    }
+    boutons.append(saveQuestion);
+}
+
+function fillFormQuestion(question){
+    // Remplissage de l'élément li
+    let liQuestion = document.getElementById('questionNew');
+    liQuestion.id = 'question'+question.id;
+
+    // Remplissage de l'élément du titre de la question
+    let titreQuestion = document.getElementById('titreQuestionLabelNew');
+    titreQuestion.setAttribute('for', 'titreQuestion' + question.id);
+    titreQuestion.setAttribute('id', 'titreQuestionLabel' + question.id);
+
+    let titreQuestionInput = document.getElementById('titreQuestionNew');
+    titreQuestionInput.id = 'titreQuestion' + question.id;
+    titreQuestionInput.value = question.title;
+
+    // Création de l'élément du type de la question
+    let typeQuestion = document.getElementById('typeQuestionLabelNew');
+    typeQuestion.setAttribute('for', 'typeQuestion'+question.id);
+    typeQuestion.setAttribute('id', 'typeQuestionLabel' + question.id);
+
+    let typeQuestionInput = document.getElementById('typeQuestionNew');
+    typeQuestionInput.id = 'typeQuestion' + question.id;
+    typeQuestionInput.value = question.type;
+
+    // Boutons de gestion de la question
+    let boutons = document.getElementById('boutonsQuestionNew');
+    boutons.id = 'boutonsQuestion' + question.id;
+    clearContent(boutons);
+
+    let deleteQuestionButton = document.createElement('img');
+    deleteQuestionButton.src = 'img/delete.png';
+    deleteQuestionButton.onclick = function(){
+        deleteQuestion(question);
+    }
+    boutons.append(deleteQuestionButton);
+
+    let saveQuestion = document.createElement('img');
+    saveQuestion.src = 'img/save.png';
+    saveQuestion.onclick = function(){
+        saveModifiedQuestion(question);
+    }
+    boutons.append(saveQuestion);
+}
+
+function fillFormQuestionnaire(json){
     document.getElementById('titreQuestionnaire').setAttribute('questionnaireId', json.id);
     document.getElementById('titreQuestionnaireInput').value = json.name;
-    let questionsQuestionnaire = document.getElementById('listeQuestions');
+    // let questionsQuestionnaire = document.getElementById('listeQuestions');
     json.questions.forEach(question => {
-        // Création de l'élément li
-        let liQuestion = document.createElement('li');
-        liQuestion.id = 'question'+question.id;
-        liQuestion.style.border = '0.1em solid black';
-        questionsQuestionnaire.append(liQuestion);
-
-        // Création de l'élément du titre de la question
-        let titre = document.createElement('div');
-        liQuestion.append(titre);
-
-        let titreQuestion = document.createElement('label');
-        titreQuestion.setAttribute('for', 'titreQuestion'+question.id);
-        titreQuestion.textContent = 'Titre : '
-        titre.append(titreQuestion);
-
-        let titreQuestionInput = document.createElement('input');
-        titreQuestionInput.id = 'titreQuestion'+question.id;
-        titreQuestionInput.value = question.title;
-        titre.append(titreQuestionInput);
-
-        // Création de l'élément du type de la question
-        let type = document.createElement('div');
-        liQuestion.append(type);
-
-        let typeQuestion = document.createElement('label');
-        typeQuestion.setAttribute('for', 'typeQuestion'+question.id);
-        typeQuestion.textContent = 'Type : '
-        type.append(typeQuestion);
-
-        let typeQuestionInput = document.createElement('input');
-        typeQuestionInput.id = 'typeQuestion'+question.id;
-        typeQuestionInput.value = question.type;
-        type.append(typeQuestionInput);
-
-        // Boutons de gestion de la question
-        let boutons = document.createElement('div');
-        liQuestion.append(boutons);
-
-        let deleteQuestionButton = document.createElement('img');
-        deleteQuestionButton.src = 'img/delete.png';
-        deleteQuestionButton.onclick = function(){
-            deleteQuestion(question);
-        }
-        boutons.append(deleteQuestionButton);
-
-        let saveQuestion = document.createElement('img');
-        saveQuestion.src = 'img/save.png';
-        saveQuestion.onclick = function(){
-            saveModifiedQuestion(question);
-        }
-        boutons.append(saveQuestion);
+        formQuestion();
+        fillFormQuestion(question);
     });
 }
 
@@ -175,7 +217,7 @@ function saveModifiedQuestionnaire(){
     fetch('http://localhost:5000/api/questionnaires',{
         headers: {'Content-Type': 'application/json'},
         method: 'PUT',
-        body: `{'questionnaire_id':${titreQuestionnaire.getAttribute('questionnaireId')},'name':'${titreQuestionnaireInput.value}'}`
+        body: JSON.stringify({"questionnaire_id":titreQuestionnaire.getAttribute('questionnaireId'),"name":titreQuestionnaireInput.value})
     })
     .then(response => {
         if (response.ok) {
@@ -190,14 +232,15 @@ function saveModifiedQuestionnaire(){
 }
 
 document.querySelector('#tools #add').onclick = formQuestionnaire;
-
+// curl -i -H "Content-Type: application/json" -X POST -d '{"name":"test"}' http://localhost:5000/api/questionnaires
 function saveNewQuestionnaire(){
     let titreQuestionnaireInput = document.getElementById('titreQuestionnaireInput');
     // Création de la requête permettant de modifier le questionnaire
+    console.log(titreQuestionnaireInput.value);
     fetch('http://localhost:5000/api/questionnaires',{
         headers: {'Content-Type': 'application/json'},
         method: 'POST',
-        body: `{'name':'${titreQuestionnaireInput.value}'}`
+        body: JSON.stringify({"name":titreQuestionnaireInput.value})
     })
     .then(response => {
         if (response.ok) {
@@ -210,7 +253,7 @@ function saveNewQuestionnaire(){
     .then(json => {
         document.getElementById('titreQuestionnaire').setAttribute('questionnaireId', json.id);
         titreQuestionnaireInput.value = json.name;
-        document.getElementById('saveQuestionnaire').onclick = saveModifiedQuestionnaire();
+        document.getElementById('saveQuestionnaire').onclick = saveModifiedQuestionnaire;
     })
     .catch(onerror);
 }
@@ -222,7 +265,7 @@ function deleteQuestionnaire(){
         fetch('http://localhost:5000/api/questionnaires',{
             headers: {'Content-Type': 'application/json'},
             method: 'DELETE',
-            body: `{'questionnaire_id':${titreQuestionnaire.getAttribute('questionnaireId')}}`
+            body: JSON.stringify({"questionnaire_id":titreQuestionnaire.getAttribute("questionnaireId")})
         })
         .then(response => {
             if (response.ok) {
@@ -246,7 +289,7 @@ function deleteQuestion(json){
     fetch('http://localhost:5000/api/questions',{
         headers: {'Content-Type': 'application/json'},
         method: 'DELETE',
-        body: `{'question_id':'${json.id}'}`
+        body: JSON.stringify({"question_id":json.id})
     })
     .then(response => {
         if (response.ok) {
