@@ -363,13 +363,11 @@ function saveNewQuestion(title, type){
     }
     else {
         let titreQuestionnaire = document.getElementById('titreQuestionnaire');
-        let titreQuestion = document.getElementById('titreQuestionNew');
-        let typeQuestion = document.getElementById('typeQuestionNew');
         // Création de la requête permettant de modifier le questionnaire
         fetch('http://localhost:5000/api/questions',{
         headers: {'Content-Type': 'application/json'},
         method: 'POST',
-        body: JSON.stringify({"title":titreQuestion.value, "type":typeQuestion.value, "questionnaire_id": titreQuestionnaire.getAttribute('questionnaireid')})
+        body: JSON.stringify({"title":title, "type":type, "questionnaire_id": titreQuestionnaire.getAttribute('questionnaireid')})
         })
         .then(response => {
             if (response.ok) {
