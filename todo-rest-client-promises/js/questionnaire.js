@@ -181,9 +181,7 @@ function fillFormQuestion(form, question){
     let saveQuestion = document.createElement('img');
     saveQuestion.src = 'img/save.png';
     saveQuestion.onclick = function(){
-        // A refaire
         saveModifiedQuestion(form, question);
-        saveModifiedQuestion(question, titreQuestionInput.value, typeQuestionInput.value);
     }
     boutons.append(saveQuestion);
 }
@@ -337,6 +335,7 @@ function saveModifiedQuestion(form, question){
         .then(response => {
             if (response.ok) {
                 console.log('Update Success');
+                return response.json();
             }
             else throw new Error('Problème ajax: ' + response.status);
         })
