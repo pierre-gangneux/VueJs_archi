@@ -97,7 +97,7 @@ function formQuestionnaire(isnew){
         // save envoie une requête POST pour enregistrer ce nouveau questionnaire
         save.alt = 'Enregistrer le questionnaire';
         save.onclick = function() {
-            saveNewQuestionnaire();
+            saveNewQuestionnaire(titreQuestionnaireInput.value);
         }
     }
     else{
@@ -153,7 +153,7 @@ function formQuestion(){
     saveQuestion.src = 'img/save.png';
     saveQuestion.onclick = function(){
         // saveNewQuestion
-        saveNewQuestion();
+        saveNewQuestion(titreQuestionInput.value, typeQuestionInput.value);
     }
     boutons.append(saveQuestion);
 }
@@ -239,26 +239,31 @@ function saveModifiedQuestionnaire(){
 document.querySelector('#tools #add').onclick = formQuestionnaire;
 
 // curl -i -H "Content-Type: application/json" -X POST -d '{"name":"test"}' http://localhost:5000/api/questionnaires
-function saveNewQuestionnaire(){
-    let titreQuestionnaireInput = document.getElementById('titreQuestionnaireInput');
-    // Création de la requête permettant de modifier le questionnaire
-    fetch('http://localhost:5000/api/questionnaires',{
-        headers: {'Content-Type': 'application/json'},
-        method: 'POST',
-        body: JSON.stringify({"name":titreQuestionnaireInput.value})
-    })
-    .then(response => {
-        if (response.ok) {
-            console.log('Insert Success');
-            refreshQuestionnaireList();
-            return response.json();
-        }
-        else throw new Error('Problème ajax: ' + response.status);
-    })
-    .then(json => {
-        getDetailQuestionnaire(json);
-    })
-    .catch(onerror);
+function saveNewQuestionnaire(name){
+    if (name == ''){
+        // Client error
+        onerror('Il est impossible de créer un questionnaire avec un titre vide');
+    }
+    else{
+        // Création de la requête permettant de modifier le questionnaire
+        fetch('http://localhost:5000/api/questionnaires',{
+            headers: {'Content-Type': 'application/json'},
+            method: 'POST',
+            body: JSON.stringify({"name":name})
+        })
+        .then(response => {
+            if (response.ok) {
+                console.log('Insert Success');
+                refreshQuestionnaireList();
+                return response.json();
+            }
+            else throw new Error('Problème ajax: ' + response.status);
+        })
+        .then(json => {
+            getDetailQuestionnaire(json);
+        })
+        .catch(onerror);
+    }
 }
 
 function deleteQuestionnaire(){
@@ -346,28 +351,35 @@ function saveModifiedQuestion(json){
 }
 
 // curl -i -H "Content-Type: application/json" -X POST -d '{"title":"testQ", "type":"text", "questionnaire_id":1}' http://localhost:5000/api/questions
-function saveNewQuestion(){
-    let titreQuestionnaire = document.getElementById('titreQuestionnaire');
-    let titreQuestion = document.getElementById('titreQuestionNew');
-    let typeQuestion = document.getElementById('typeQuestionNew');
-    // Création de la requête permettant de modifier le questionnaire
-    fetch('http://localhost:5000/api/questions',{
+function saveNewQuestion(title, type){
+    const errors = [];
+
+    if (!title) errors.push("Il est impossible de créer une question avec un titre vide");
+    if (!type) errors.push("Il est impossible de créer une question avec un type vide");
+    
+    if (errors.length) {
+        // Client error
+        errors.forEach(error => onerror(error));
+    }
+    else {
+        let titreQuestionnaire = document.getElementById('titreQuestionnaire');
+        let titreQuestion = document.getElementById('titreQuestionNew');
+        let typeQuestion = document.getElementById('typeQuestionNew');
+        // Création de la requête permettant de modifier le questionnaire
+        fetch('http://localhost:5000/api/questions',{
         headers: {'Content-Type': 'application/json'},
         method: 'POST',
         body: JSON.stringify({"title":titreQuestion.value, "type":typeQuestion.value, "questionnaire_id": titreQuestionnaire.getAttribute('questionnaireid')})
-    })
-    .then(response => {
-        if (response.ok) {
-            console.log('Insert Success');
-            refreshQuestionnaireList();
-            return response.json();
-        }
-        else throw new Error('Problème ajax: ' + response.status);
-    })
-    .then(json => {
-        // document.getElementById('titreQuestionnaire').setAttribute('questionnaireId', json.id);
-        // titreQuestionnaireInput.value = json.name;
-        // document.getElementById('saveQuestionnaire').onclick = saveModifiedQuestionnaire;
-    })
-    .catch(onerror);
+        })
+        .then(response => {
+            if (response.ok) {
+                console.log('Insert Success');
+                refreshQuestionnaireList();
+                return response.json();
+            }
+            else throw new Error('Problème ajax: ' + response.status);
+        })
+        .then(fillFormQuestion)
+        .catch(onerror);
+    }
 }
