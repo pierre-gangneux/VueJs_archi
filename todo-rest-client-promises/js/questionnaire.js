@@ -4,25 +4,26 @@ function clearContent(element){
     }
 }
 
-let button = document.getElementById('button');
-button.addEventListener('click', function(){
-    refreshQuestionnaireList();
-});
+document.getElementById('button').onclick = refreshQuestionnaireList;
 
-function remplirQuestionnaires(json){
+document.querySelector('#tools #add').onclick = formQuestionnaire;
+
+document.querySelector('#tools #del').onclick = deleteQuestionnaire;
+
+function remplirQuestionnaires(questionnaires){
     let liste = document.createElement('ul');
     document.getElementById('questionnaires').append(liste);
-    json.forEach(questionnaire => {
-        let questionnaire_li = document.createElement('li');
-        questionnaire_li.textContent = questionnaire.name;
-        questionnaire_li.addEventListener('click', function(){
+    questionnaires.forEach(questionnaire => {
+        let liQuestionnaire = document.createElement('li');
+        liQuestionnaire.textContent = questionnaire.name;
+        liQuestionnaire.addEventListener('click', function(){
             getDetailQuestionnaire(questionnaire);
         });
-        liste.append(questionnaire_li);
+        liste.append(liQuestionnaire);
     });
 }
 
-function onerror(err, msg) {
+function onerror(err, msg){
     // A refaire, faire une notification d'erreur à la place
     if (msg){
         console.log(`${msg} - ${err}`);
@@ -49,21 +50,21 @@ function refreshQuestionnaireList(){
     .catch(err => onerror(err, 'Impossible de récupérer les questionnaires à réaliser !'));
 }
 
-function getDetailQuestionnaire(questionnaire) {
+function getDetailQuestionnaire(questionnaire){
     fetch('http://127.0.0.1:5000' + questionnaire.uri)
     .then(response => {
         if (response.ok) return response.json();
         else throw new Error('Problème ajax: ' + response.status);
     })
-    .then(jsonQuestions => {
-            questionnaire.questions = jsonQuestions;
+    .then(dataQuestions => {
+            questionnaire.questions = dataQuestions;
             details(questionnaire);
     })
     .catch(onerror);
 }
 
-function details(json){
-    fillFormQuestionnaire(formQuestionnaire(), json);
+function details(questionnaire){
+    fillFormQuestionnaire(formQuestionnaire(), questionnaire);
 }
 
 function formQuestionnaire(isnew){
@@ -84,36 +85,36 @@ function formQuestionnaire(isnew){
     questionsQuestionnaire.id = 'listeQuestions';
     currentQuestionnaire.append(questionsQuestionnaire);
 
-    let save = document.getElementById('saveQuestionnaire');
+    let tools = document.getElementById('tools');
+
+    let save = tools.querySelector('#saveQuestionnaire');
     if (!save){
         save = document.createElement('img');
         save.id = 'saveQuestionnaire';
         save.src = 'img/save.png';
-        document.getElementById('tools').append(save);
+        tools.append(save);
     }
 
     if (isnew){
-        // save envoie une requête POST pour enregistrer ce nouveau questionnaire
         save.alt = 'Enregistrer le questionnaire';
-        save.onclick = function() {
+        save.onclick = function(){
             saveNewQuestionnaire(titreQuestionnaireInput.value);
         }
     }
     else{
-        // save envoie une requête PUT pour enregistrer la modification du questionnaire
         save.alt = 'Sauvegarder le changement';
-        save.onclick = function() {
+        save.onclick = function(){
             saveModifiedQuestionnaire(titreQuestionnaireInput.value);
         };
     }
     return currentQuestionnaire;
 }
 
-function formQuestion(form){
+function formQuestion(formQuestionnaire){
     // Création de l'élément li
     let liQuestion = document.createElement('li');
     liQuestion.style.border = '0.1em solid black';
-    form.querySelector('#listeQuestions').append(liQuestion);
+    formQuestionnaire.querySelector('#listeQuestions').append(liQuestion);
 
     // Création de l'élément du titre de la question
     let titre = document.createElement('div');
@@ -151,52 +152,51 @@ function formQuestion(form){
     let saveQuestion = document.createElement('img');
     saveQuestion.src = 'img/save.png';
     saveQuestion.onclick = function(){
-        // Refaire avec questionnaireForm et questionForm (form et liQuestion)
-        saveNewQuestion(form, liQuestion);
+        saveNewQuestion(formQuestionnaire, liQuestion);
     }
     boutons.append(saveQuestion);
     return liQuestion;
 }
 
-function fillFormQuestion(form, question){
-    form.setAttribute('question_id', question.id);
+function fillFormQuestion(formQuestion, dataQuestion){
+    formQuestion.setAttribute('QuestionId', dataQuestion.id);
 
-    let titreQuestionInput = form.querySelector('#titreQuestion');
-    titreQuestionInput.value = question.title;
+    let titreQuestionInput = formQuestion.querySelector('#titreQuestion');
+    titreQuestionInput.value = dataQuestion.title;
 
-    let typeQuestionInput = form.querySelector('#typeQuestion');
-    typeQuestionInput.value = question.type;
+    let typeQuestionInput = formQuestion.querySelector('#typeQuestion');
+    typeQuestionInput.value = dataQuestion.type;
 
     // Boutons de gestion de la question
-    let boutons = form.querySelector('#boutonsQuestion');
+    let boutons = formQuestion.querySelector('#boutonsQuestion');
     clearContent(boutons);
 
     let deleteQuestionButton = document.createElement('img');
     deleteQuestionButton.src = 'img/delete.png';
     deleteQuestionButton.onclick = function(){
-        deleteQuestion(form);
+        deleteQuestion(formQuestion);
     }
     boutons.append(deleteQuestionButton);
 
     let saveQuestion = document.createElement('img');
     saveQuestion.src = 'img/save.png';
     saveQuestion.onclick = function(){
-        saveModifiedQuestion(form, question);
+        saveModifiedQuestion(formQuestion, dataQuestion);
     }
     boutons.append(saveQuestion);
 }
 
-function fillFormQuestionnaire(form, questionnaire){
-    form.querySelector('#titreQuestionnaire').setAttribute('questionnaireId', questionnaire.id);
-    form.querySelector('#titreQuestionnaireInput').value = questionnaire.name;
-    questionnaire.questions.forEach(question => {
-        fillFormQuestion(formQuestion(form), question);
+function fillFormQuestionnaire(formQuestionnaire, dataQuestionnaire){
+    formQuestionnaire.querySelector('#titreQuestionnaire').setAttribute('questionnaireId', dataQuestionnaire.id);
+    formQuestionnaire.querySelector('#titreQuestionnaireInput').value = dataQuestionnaire.name;
+    dataQuestionnaire.questions.forEach(question => {
+        fillFormQuestion(formQuestion(formQuestionnaire), question);
     });
     let newQuestion = document.createElement('img');
     document.getElementById('currentQuestionnaire').append(newQuestion);
     newQuestion.src = "img/new.png";
     newQuestion.onclick = function(){
-        formQuestion(form);
+        formQuestion(formQuestionnaire);
     };
 }
 
@@ -206,7 +206,7 @@ function saveModifiedQuestionnaire(title){
         // Client error
         onerror('Il est impossible de modifier un questionnaire avec un titre vide');
     }
-    else{
+    else if (titreQuestionnaire){
         // Création de la requête permettant de modifier le questionnaire
         fetch('http://localhost:5000/api/questionnaires',{
             headers: {'Content-Type': 'application/json'},
@@ -214,7 +214,7 @@ function saveModifiedQuestionnaire(title){
             body: JSON.stringify({"questionnaire_id":titreQuestionnaire.getAttribute('questionnaireId'),"name":title})
         })
         .then(response => {
-            if (response.ok) {
+            if (response.ok){
                 console.log('Update Success');
                 refreshQuestionnaireList();
                 return response.json()
@@ -225,7 +225,6 @@ function saveModifiedQuestionnaire(title){
     }
 }
 
-document.querySelector('#tools #add').onclick = formQuestionnaire;
 
 // curl -i -H "Content-Type: application/json" -X POST -d '{"name":"test"}' http://localhost:5000/api/questionnaires
 function saveNewQuestionnaire(name){
@@ -241,15 +240,15 @@ function saveNewQuestionnaire(name){
             body: JSON.stringify({"name":name})
         })
         .then(response => {
-            if (response.ok) {
+            if (response.ok){
                 console.log('Insert Success');
                 refreshQuestionnaireList();
                 return response.json();
             }
             else throw new Error('Problème ajax: ' + response.status);
         })
-        .then(json => {
-            getDetailQuestionnaire(json);
+        .then(dataQuestionnaire => {
+            getDetailQuestionnaire(dataQuestionnaire);
         })
         .catch(onerror);
     }
@@ -265,49 +264,48 @@ function deleteQuestionnaire(){
             body: JSON.stringify({"questionnaire_id":titreQuestionnaire.getAttribute("questionnaireId")})
         })
         .then(response => {
-            if (response.ok) {
+            if (response.ok){
                 console.log('Delete Success');
                 refreshQuestionnaireList();
                 return response.json();
             }
             else throw new Error('Problème ajax: ' + response.status);
         })
-        .then(json => {
-            console.log('Supression du questionnaire ' + json.name);
+        .then(dataQuestionnaire => {
+            console.log('Supression du questionnaire ' + dataQuestionnaire.name);
             clearContent(document.getElementById('currentQuestionnaire'));
         })
         .catch(onerror);
     }
 }
 
-document.querySelector('#tools #del').onclick = deleteQuestionnaire;
 
-function deleteQuestion(form){
+function deleteQuestion(formQuestion){
     fetch('http://localhost:5000/api/questions',{
         headers: {'Content-Type': 'application/json'},
         method: 'DELETE',
-        body: JSON.stringify({"question_id":form.getAttribute('question_id')})
+        body: JSON.stringify({"question_id":formQuestion.getAttribute('questionId')})
     })
     .then(response => {
-        if (response.ok) {
+        if (response.ok){
             console.log('Delete Success');
             refreshQuestionnaireList();
             return response.json();
         }
         else throw new Error('Problème ajax: ' + response.status);
     })
-    .then(json => {
-        console.log('Supression de la question ' + json.title);
-        form.remove();
+    .then(dataQuestion => {
+        console.log('Supression de la question ' + dataQuestion.title);
+        formQuestion.remove();
     })
     .catch(onerror);
 }
 
-function saveModifiedQuestion(form, question){
-    title = form.querySelector('#titreQuestion').value;
-    type = form.querySelector('#typeQuestion').value;
-    let bodyRequest = {'question_id':question.id};
-    if (question.title != title){
+function saveModifiedQuestion(formQuestion, dataQuestion){
+    let title = formQuestion.querySelector('#titreQuestion').value;
+    let type = formQuestion.querySelector('#typeQuestion').value;
+    let bodyRequest = {'question_id':dataQuestion.id};
+    if (dataQuestion.title != title){
         if (title != ''){
             bodyRequest.title = title;
         }
@@ -316,7 +314,7 @@ function saveModifiedQuestion(form, question){
             onerror("Il n'est pas possible d'avoir un titre vide");
         }
     }
-    if (question.type != type){
+    if (dataQuestion.type != type){
         if (type != ''){
             bodyRequest.type = type;
         }
@@ -333,14 +331,14 @@ function saveModifiedQuestion(form, question){
             body: JSON.stringify(bodyRequest)
         })
         .then(response => {
-            if (response.ok) {
+            if (response.ok){
                 console.log('Update Success');
                 return response.json();
             }
             else throw new Error('Problème ajax: ' + response.status);
         })
-        .then(json => {
-            fillFormQuestion(form, json)
+        .then(dataQuestion => {
+            fillFormQuestion(formQuestion, dataQuestion)
         })
         .catch(onerror);
     }
@@ -350,17 +348,15 @@ function saveModifiedQuestion(form, question){
     }
 }
 
-// curl -i -H "Content-Type: application/json" -X POST -d '{"title":"testQ", "type":"text", "questionnaire_id":1}' http://localhost:5000/api/questions
-function saveNewQuestion(questionnaire, question){
-    title = question.querySelector('#titreQuestion').value;
-    type = question.querySelector('#typeQuestion').value;
-    let questionnaire_id = questionnaire.querySelector('#titreQuestionnaire').getAttribute('questionnaireId');
-    const errors = [];
+function saveNewQuestion(formQuestionnaire, formQuestion){
+    let title = formQuestion.querySelector('#titreQuestion').value; // Récupère la valeur du title de la question
+    let type = formQuestion.querySelector('#typeQuestion').value; // Récupère la valeur du type de la question
+    let questionnaireId = formQuestionnaire.querySelector('#titreQuestionnaire').getAttribute('questionnaireId');
 
-    if (!title) errors.push("Il est impossible de créer une question avec un titre vide");
+    const errors = [];
+    if (!title) errors.push("Il est impossible de créer une question avec un title vide");
     if (!type) errors.push("Il est impossible de créer une question avec un type vide");
-    
-    if (errors.length) {
+    if (errors.length){
         // Client error
         errors.forEach(error => onerror(error));
     }
@@ -369,18 +365,18 @@ function saveNewQuestion(questionnaire, question){
         fetch('http://localhost:5000/api/questions',{
         headers: {'Content-Type': 'application/json'},
         method: 'POST',
-        body: JSON.stringify({"title":title, "type":type, "questionnaire_id":questionnaire_id})
+        body: JSON.stringify({"title":title, "type":type, "questionnaire_id":questionnaireId})
         })
         .then(response => {
-            if (response.ok) {
+            if (response.ok){
                 console.log('Insert Success');
                 refreshQuestionnaireList();
                 return response.json();
             }
             else throw new Error('Problème ajax: ' + response.status);
         })
-        .then(json => {
-            fillFormQuestion(question, json)
+        .then(dataQuestion => {
+            fillFormQuestion(formQuestion, dataQuestion)
         })
         .catch(onerror);
     }
