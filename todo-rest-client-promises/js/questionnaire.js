@@ -153,6 +153,7 @@ function formQuestion(){
     saveQuestion.src = 'img/save.png';
     saveQuestion.onclick = function(){
         // saveNewQuestion
+        saveNewQuestion();
     }
     boutons.append(saveQuestion);
 }
@@ -200,14 +201,18 @@ function fillFormQuestion(question){
     boutons.append(saveQuestion);
 }
 
-function fillFormQuestionnaire(json){
-    document.getElementById('titreQuestionnaire').setAttribute('questionnaireId', json.id);
-    document.getElementById('titreQuestionnaireInput').value = json.name;
+function fillFormQuestionnaire(questionnaire){
+    document.getElementById('titreQuestionnaire').setAttribute('questionnaireId', questionnaire.id);
+    document.getElementById('titreQuestionnaireInput').value = questionnaire.name;
     // let questionsQuestionnaire = document.getElementById('listeQuestions');
-    json.questions.forEach(question => {
+    questionnaire.questions.forEach(question => {
         formQuestion();
         fillFormQuestion(question);
     });
+    let newQuestion = document.createElement('img');
+    document.getElementById('currentQuestionnaire').append(newQuestion);
+    newQuestion.src = "img/new.png";
+    newQuestion.onclick = formQuestion;
 }
 
 function saveModifiedQuestionnaire(){
@@ -232,11 +237,11 @@ function saveModifiedQuestionnaire(){
 }
 
 document.querySelector('#tools #add').onclick = formQuestionnaire;
+
 // curl -i -H "Content-Type: application/json" -X POST -d '{"name":"test"}' http://localhost:5000/api/questionnaires
 function saveNewQuestionnaire(){
     let titreQuestionnaireInput = document.getElementById('titreQuestionnaireInput');
     // Création de la requête permettant de modifier le questionnaire
-    console.log(titreQuestionnaireInput.value);
     fetch('http://localhost:5000/api/questionnaires',{
         headers: {'Content-Type': 'application/json'},
         method: 'POST',
@@ -251,9 +256,7 @@ function saveNewQuestionnaire(){
         else throw new Error('Problème ajax: ' + response.status);
     })
     .then(json => {
-        document.getElementById('titreQuestionnaire').setAttribute('questionnaireId', json.id);
-        titreQuestionnaireInput.value = json.name;
-        document.getElementById('saveQuestionnaire').onclick = saveModifiedQuestionnaire;
+        getDetailQuestionnaire(json);
     })
     .catch(onerror);
 }
@@ -340,4 +343,31 @@ function saveModifiedQuestion(json){
         })
         .catch(onerror);
     }
+}
+
+// curl -i -H "Content-Type: application/json" -X POST -d '{"title":"testQ", "type":"text", "questionnaire_id":1}' http://localhost:5000/api/questions
+function saveNewQuestion(){
+    let titreQuestionnaire = document.getElementById('titreQuestionnaire');
+    let titreQuestion = document.getElementById('titreQuestionNew');
+    let typeQuestion = document.getElementById('typeQuestionNew');
+    // Création de la requête permettant de modifier le questionnaire
+    fetch('http://localhost:5000/api/questions',{
+        headers: {'Content-Type': 'application/json'},
+        method: 'POST',
+        body: JSON.stringify({"title":titreQuestion.value, "type":typeQuestion.value, "questionnaire_id": titreQuestionnaire.getAttribute('questionnaireid')})
+    })
+    .then(response => {
+        if (response.ok) {
+            console.log('Insert Success');
+            refreshQuestionnaireList();
+            return response.json();
+        }
+        else throw new Error('Problème ajax: ' + response.status);
+    })
+    .then(json => {
+        // document.getElementById('titreQuestionnaire').setAttribute('questionnaireId', json.id);
+        // titreQuestionnaireInput.value = json.name;
+        // document.getElementById('saveQuestionnaire').onclick = saveModifiedQuestionnaire;
+    })
+    .catch(onerror);
 }
