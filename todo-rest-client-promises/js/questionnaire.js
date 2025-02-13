@@ -22,11 +22,10 @@ function remplirQuestionnaires(questionnaires){
 }
 
 function showMessage(err, msg, color, bold){
-    console.log(err, msg, color, bold);
-    if (msg){
+    if (msg != ''){
         // Afficher une notification avec le msg en prenant en compte si le texte doit être en gras et la couleur de fond
     }
-    if (err){
+    if (err != ''){
         let css = '';
         if (color){
             css += `color:${color};`;
@@ -45,10 +44,10 @@ function showMessage(err, msg, color, bold){
 
 function errorServeur(err, msg){
     if (err && !msg){
-        showMessage(err=err, color='red', bold=true);
+        showMessage(err=err, msg='', color='red', bold=true);
     }
     if (!err && msg){
-        showMessage(msg=msg, color='red', bold=true);
+        showMessage(err='', msg=msg, color='red', bold=true);
     }
     if (err && msg){
         showMessage(err=err, msg=msg, color='red', bold=true);
@@ -60,7 +59,7 @@ function errorClient(msg){
 }
 
 function successMessage(msg){
-    showMessage(msg=msg, color='green', bold=true);
+    showMessage(err=msg, msg=msg, color='green', bold=true);
 }
 
 function refreshQuestionnaireList(){
