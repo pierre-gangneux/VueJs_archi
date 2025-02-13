@@ -8,8 +8,6 @@ document.getElementById('button').onclick = refreshQuestionnaireList;
 
 document.querySelector('#tools #add').onclick = formQuestionnaire;
 
-document.querySelector('#tools #del').onclick = deleteQuestionnaire;
-
 function remplirQuestionnaires(questionnaires){
     let liste = document.createElement('ul');
     document.getElementById('questionnaires').append(liste);
@@ -70,11 +68,13 @@ function details(questionnaire){
 function formQuestionnaire(isnew){
     let currentQuestionnaire = document.getElementById('currentQuestionnaire');
     clearContent(currentQuestionnaire);
+    // A changer pour permettre une meilleur flexibilité
+    let form = currentQuestionnaire;
 
     let titreQuestionnaire = document.createElement('h1');
     titreQuestionnaire.textContent = 'Titre';
     titreQuestionnaire.id = 'titreQuestionnaire';
-    currentQuestionnaire.append(titreQuestionnaire);
+    form.append(titreQuestionnaire);
 
     let titreQuestionnaireInput = document.createElement('input');
     titreQuestionnaireInput.type = 'text';
@@ -83,14 +83,38 @@ function formQuestionnaire(isnew){
     
     let questionsQuestionnaire = document.createElement('ul');
     questionsQuestionnaire.id = 'listeQuestions';
-    currentQuestionnaire.append(questionsQuestionnaire);
+    form.append(questionsQuestionnaire);
 
     let tools = document.getElementById('tools');
 
-    let save = tools.querySelector('#saveQuestionnaire');
+    // document.querySelector('#tools #del').onclick = deleteQuestionnaire;
+    let del = tools.querySelector('#del');
+    if (!del){
+        if (!isnew){
+            del = document.createElement('img');
+            del.id = 'del';
+            del.src = 'img/delete.png';
+            del.onclick = function(){
+                deleteQuestionnaire(form)
+            }
+            tools.append(del);
+        }
+    }
+    else{
+        if (isnew){
+            del.remove();
+        }
+        else{
+            del.onclick = function(){
+                deleteQuestionnaire(form)
+            }
+        }
+    }
+
+    let save = tools.querySelector('#save');
     if (!save){
         save = document.createElement('img');
-        save.id = 'saveQuestionnaire';
+        save.id = 'save';
         save.src = 'img/save.png';
         tools.append(save);
     }
@@ -98,16 +122,16 @@ function formQuestionnaire(isnew){
     if (isnew){
         save.alt = 'Enregistrer le questionnaire';
         save.onclick = function(){
-            saveNewQuestionnaire(titreQuestionnaireInput.value);
+            saveNewQuestionnaire(form);
         }
     }
     else{
         save.alt = 'Sauvegarder le changement';
         save.onclick = function(){
-            saveModifiedQuestionnaire(titreQuestionnaireInput.value);
+            saveModifiedQuestionnaire(form);
         };
     }
-    return currentQuestionnaire;
+    return form;
 }
 
 function formQuestion(formQuestionnaire){
@@ -200,24 +224,23 @@ function fillFormQuestionnaire(formQuestionnaire, dataQuestionnaire){
     };
 }
 
-function saveModifiedQuestionnaire(title){
-    let titreQuestionnaire = document.getElementById('titreQuestionnaire');
-    if (title == ''){
+function saveModifiedQuestionnaire(formQuestionnaire){
+    let name = formQuestionnaire.querySelector('#titreQuestionnaireInput').value
+    if (name == ''){
         // Client error
         onerror('Il est impossible de modifier un questionnaire avec un titre vide');
     }
-    else if (titreQuestionnaire){
+    else{
         // Création de la requête permettant de modifier le questionnaire
         fetch('http://localhost:5000/api/questionnaires',{
             headers: {'Content-Type': 'application/json'},
             method: 'PUT',
-            body: JSON.stringify({"questionnaire_id":titreQuestionnaire.getAttribute('questionnaireId'),"name":title})
+            body: JSON.stringify({"questionnaire_id":formQuestionnaire.querySelector('#titreQuestionnaire').getAttribute('questionnaireId'),"name":name})
         })
         .then(response => {
             if (response.ok){
                 console.log('Update Success');
                 refreshQuestionnaireList();
-                return response.json()
             }
             else throw new Error('Problème ajax: ' + response.status);
         })
@@ -227,7 +250,8 @@ function saveModifiedQuestionnaire(title){
 
 
 // curl -i -H "Content-Type: application/json" -X POST -d '{"name":"test"}' http://localhost:5000/api/questionnaires
-function saveNewQuestionnaire(name){
+function saveNewQuestionnaire(formQuestionnaire){
+    let name = formQuestionnaire.querySelector('#titreQuestionnaireInput').value
     if (name == ''){
         // Client error
         onerror('Il est impossible de créer un questionnaire avec un titre vide');
@@ -249,34 +273,35 @@ function saveNewQuestionnaire(name){
         })
         .then(dataQuestionnaire => {
             getDetailQuestionnaire(dataQuestionnaire);
+            document.getElementById('save').remove();
         })
         .catch(onerror);
     }
 }
 
-function deleteQuestionnaire(){
-    let titreQuestionnaire = document.getElementById('titreQuestionnaire');
+function deleteQuestionnaire(formQuestionnaire){
     // Création de la requête permettant de modifier le questionnaire
-    if (titreQuestionnaire){
-        fetch('http://localhost:5000/api/questionnaires',{
-            headers: {'Content-Type': 'application/json'},
-            method: 'DELETE',
-            body: JSON.stringify({"questionnaire_id":titreQuestionnaire.getAttribute("questionnaireId")})
-        })
-        .then(response => {
-            if (response.ok){
-                console.log('Delete Success');
-                refreshQuestionnaireList();
-                return response.json();
-            }
-            else throw new Error('Problème ajax: ' + response.status);
-        })
-        .then(dataQuestionnaire => {
-            console.log('Supression du questionnaire ' + dataQuestionnaire.name);
-            clearContent(document.getElementById('currentQuestionnaire'));
-        })
-        .catch(onerror);
-    }
+    fetch('http://localhost:5000/api/questionnaires',{
+        headers: {'Content-Type': 'application/json'},
+        method: 'DELETE',
+        body: JSON.stringify({"questionnaire_id":formQuestionnaire.querySelector('#titreQuestionnaire').getAttribute('questionnaireId')})
+    })
+    .then(response => {
+        if (response.ok){
+            console.log('Delete Success');
+            refreshQuestionnaireList();
+            return response.json();
+        }
+        else throw new Error('Problème ajax: ' + response.status);
+    })
+    .then(dataQuestionnaire => {
+        console.log('Supression du questionnaire ' + dataQuestionnaire.name);
+        // Une fois le form détacher du #currentQuestionnaire, mettre un remove au form
+        clearContent(formQuestionnaire);
+        document.getElementById('del').remove();
+        document.getElementById('save').remove();
+    })
+    .catch(onerror);
 }
 
 
