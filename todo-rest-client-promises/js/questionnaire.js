@@ -104,7 +104,7 @@ function formQuestionnaire(isnew){
         // save envoie une requête PUT pour enregistrer la modification du questionnaire
         save.alt = 'Sauvegarder le changement';
         save.onclick = function() {
-            saveModifiedQuestionnaire();
+            saveModifiedQuestionnaire(titreQuestionnaireInput.value);
         };
     }
 }
@@ -196,7 +196,7 @@ function fillFormQuestion(question){
     let saveQuestion = document.createElement('img');
     saveQuestion.src = 'img/save.png';
     saveQuestion.onclick = function(){
-        saveModifiedQuestion(question);
+        saveModifiedQuestion(question, titreQuestionInput.value, typeQuestionInput.value);
     }
     boutons.append(saveQuestion);
 }
@@ -215,25 +215,30 @@ function fillFormQuestionnaire(questionnaire){
     newQuestion.onclick = formQuestion;
 }
 
-function saveModifiedQuestionnaire(){
-    let titreQuestionnaireInput = document.getElementById('titreQuestionnaireInput');
+function saveModifiedQuestionnaire(title){
     let titreQuestionnaire = document.getElementById('titreQuestionnaire');
-    // Création de la requête permettant de modifier le questionnaire
-    fetch('http://localhost:5000/api/questionnaires',{
-        headers: {'Content-Type': 'application/json'},
-        method: 'PUT',
-        body: JSON.stringify({"questionnaire_id":titreQuestionnaire.getAttribute('questionnaireId'),"name":titreQuestionnaireInput.value})
-    })
-    .then(response => {
-        if (response.ok) {
-            console.log('Update Success');
-            refreshQuestionnaireList();
-            return response.json();
-        }
-        else throw new Error('Problème ajax: ' + response.status);
-    })
-    .then(json => titreQuestionnaireInput.value = json.name)
-    .catch(onerror);
+    if (title == ''){
+        // Client error
+        onerror('Il est impossible de modifier un questionnaire avec un titre vide');
+    }
+    else{
+        // Création de la requête permettant de modifier le questionnaire
+        fetch('http://localhost:5000/api/questionnaires',{
+            headers: {'Content-Type': 'application/json'},
+            method: 'PUT',
+            body: JSON.stringify({"questionnaire_id":titreQuestionnaire.getAttribute('questionnaireId'),"name":title})
+        })
+        .then(response => {
+            if (response.ok) {
+                console.log('Update Success');
+                refreshQuestionnaireList();
+                return response.json();
+            }
+            else throw new Error('Problème ajax: ' + response.status);
+        })
+        .then(json => title = json.name)
+        .catch(onerror);
+    }
 }
 
 document.querySelector('#tools #add').onclick = formQuestionnaire;
@@ -314,15 +319,25 @@ function deleteQuestion(json){
     .catch(onerror);
 }
 
-function saveModifiedQuestion(json){
-    let titreQuestion = document.getElementById('titreQuestion'+json.id);
-    let typeQuestion = document.getElementById('typeQuestion'+json.id);
+function saveModifiedQuestion(json, titre, type){
     let bodyRequest = {'question_id':json.id};
-    if (json.title != titreQuestion.value){
-        bodyRequest.title = titreQuestion.value;
+    if (json.title != titre){
+        if (titre != ''){
+            bodyRequest.title = titre;
+        }
+        else{
+            // Client error
+            onerror("Il n'est pas possible d'avoir un titre vide");
+        }
     }
-    if (json.type != typeQuestion.value){
-        bodyRequest.type = typeQuestion.value;
+    if (json.type != type){
+        if (type != ''){
+            bodyRequest.type = type;
+        }
+        else{
+            // Client error
+            onerror("Il n'est pas possible d'avoir un type vide")
+        }
     }
     if (Object.keys(bodyRequest).length > 1){
         // Création de la requête permettant de modifier la question
@@ -340,13 +355,17 @@ function saveModifiedQuestion(json){
         })
         .then(response => {
             if (json.title != response.title){
-                titreQuestion.value = response.title;
+                titre = response.title;
             }
             if (json.type != response.type){
-                typeQuestion.value = response.type;
+                type = response.type;
             }
         })
         .catch(onerror);
+    }
+    else{
+        // Client error
+        onerror("Aucun changement de fait");
     }
 }
 
