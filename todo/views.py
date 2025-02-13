@@ -89,7 +89,9 @@ def create_questionnaires():
     questionnaire = Questionnaire(request.json["name"])
     db.session.add(questionnaire)
     db.session.commit()
-    return jsonify(questionnaire.to_json()), 201
+    questionnaire = questionnaire.to_json()
+    questionnaire["uri"] = "/api/questionnaire/"+str(questionnaire["id"])+"/questions"
+    return jsonify(questionnaire), 201
 
 # curl -i -H "Content-Type: application/json" -X POST -d '{"title":"testQ", "type":"text", "questionnaire_id":1}' http://localhost:5000/api/questions
 @app.route("/api/questions", methods = ['POST'])
