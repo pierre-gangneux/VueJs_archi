@@ -21,20 +21,46 @@ function remplirQuestionnaires(questionnaires){
     });
 }
 
-function onerror(err, msg){
-    // A refaire, faire une notification d'erreur à la place
+function showMessage(err, msg, color, bold){
+    console.log(err, msg, color, bold);
     if (msg){
-        console.log(`${msg} - ${err}`);
+        // Afficher une notification avec le msg en prenant en compte si le texte doit être en gras et la couleur de fond
     }
-    else{
-        console.log(err);
+    if (err){
+        let css = '';
+        if (color){
+            css += `color:${color};`;
+        }
+        if (bold){
+            css += 'font-weight: bold;';
+        }
+        if (css.length){
+            console.log(`%c ${err}`, css);
+        }
+        else{
+            console.log(err);
+        }
     }
+}
 
-    // let error = document.createElement('b');
-    // error.textContent = 'Impossible de récupérer les questionnaires à réaliser !';
-    // let questionnaires = document.getElementById('questionnaires');
-    // questionnaires.appendChild(error);
-    // questionnaires.appendChild(document.createTextNode(' ' + err));
+function errorServeur(err, msg){
+    if (err && !msg){
+        showMessage(err=err, color='red', bold=true);
+    }
+    if (!err && msg){
+        showMessage(msg=msg, color='red', bold=true);
+    }
+    if (err && msg){
+        showMessage(err=err, msg=msg, color='red', bold=true);
+    }
+}
+
+function errorClient(msg){
+    showMessage(err=msg, msg=msg, color='orange', bold=true);
+}
+
+function successMessage(msg){
+    showMessage(msg=msg, color='green', bold=true);
 }
 
 function refreshQuestionnaireList(){
@@ -45,7 +71,7 @@ function refreshQuestionnaireList(){
         else throw new Error('Problème ajax: ' + response.status);
     })
     .then(remplirQuestionnaires)
-    .catch(err => onerror(err, 'Impossible de récupérer les questionnaires à réaliser !'));
+    .catch(err => errorServeur(err, 'Impossible de récupérer les questionnaires à réaliser !'));
 }
 
 function getDetailQuestionnaire(questionnaire){
@@ -58,7 +84,7 @@ function getDetailQuestionnaire(questionnaire){
             questionnaire.questions = dataQuestions;
             details(questionnaire);
     })
-    .catch(onerror);
+    .catch(errorServeur);
 }
 
 function details(questionnaire){
@@ -227,8 +253,7 @@ function fillFormQuestionnaire(formQuestionnaire, dataQuestionnaire){
 function saveModifiedQuestionnaire(formQuestionnaire){
     let name = formQuestionnaire.querySelector('#titreQuestionnaireInput').value
     if (name == ''){
-        // Client error
-        onerror('Il est impossible de modifier un questionnaire avec un titre vide');
+        errorClient('Il est impossible de modifier un questionnaire avec un titre vide');
     }
     else{
         // Création de la requête permettant de modifier le questionnaire
@@ -239,12 +264,12 @@ function saveModifiedQuestionnaire(formQuestionnaire){
         })
         .then(response => {
             if (response.ok){
-                console.log('Update Success');
+                successMessage('Update Success');
                 refreshQuestionnaireList();
             }
             else throw new Error('Problème ajax: ' + response.status);
         })
-        .catch(onerror);
+        .catch(errorServeur);
     }
 }
 
@@ -253,8 +278,7 @@ function saveModifiedQuestionnaire(formQuestionnaire){
 function saveNewQuestionnaire(formQuestionnaire){
     let name = formQuestionnaire.querySelector('#titreQuestionnaireInput').value
     if (name == ''){
-        // Client error
-        onerror('Il est impossible de créer un questionnaire avec un titre vide');
+        errorClient('Il est impossible de créer un questionnaire avec un titre vide');
     }
     else{
         // Création de la requête permettant de modifier le questionnaire
@@ -265,7 +289,7 @@ function saveNewQuestionnaire(formQuestionnaire){
         })
         .then(response => {
             if (response.ok){
-                console.log('Insert Success');
+                successMessage('Insert Success');
                 refreshQuestionnaireList();
                 return response.json();
             }
@@ -275,7 +299,7 @@ function saveNewQuestionnaire(formQuestionnaire){
             getDetailQuestionnaire(dataQuestionnaire);
             document.getElementById('save').remove();
         })
-        .catch(onerror);
+        .catch(errorServeur);
     }
 }
 
@@ -288,20 +312,20 @@ function deleteQuestionnaire(formQuestionnaire){
     })
     .then(response => {
         if (response.ok){
-            console.log('Delete Success');
+            successMessage('Delete Success');
             refreshQuestionnaireList();
             return response.json();
         }
         else throw new Error('Problème ajax: ' + response.status);
     })
     .then(dataQuestionnaire => {
-        console.log('Supression du questionnaire ' + dataQuestionnaire.name);
+        successMessage('Supression du questionnaire ' + dataQuestionnaire.name);
         // Une fois le form détacher du #currentQuestionnaire, mettre un remove au form
         clearContent(formQuestionnaire);
         document.getElementById('del').remove();
         document.getElementById('save').remove();
     })
-    .catch(onerror);
+    .catch(errorServeur);
 }
 
 
@@ -313,17 +337,17 @@ function deleteQuestion(formQuestion){
     })
     .then(response => {
         if (response.ok){
-            console.log('Delete Success');
+            successMessage('Delete Success');
             refreshQuestionnaireList();
             return response.json();
         }
         else throw new Error('Problème ajax: ' + response.status);
     })
     .then(dataQuestion => {
-        console.log('Supression de la question ' + dataQuestion.title);
+        successMessage('Supression de la question ' + dataQuestion.title);
         formQuestion.remove();
     })
-    .catch(onerror);
+    .catch(errorServeur);
 }
 
 function saveModifiedQuestion(formQuestion, dataQuestion){
@@ -336,7 +360,7 @@ function saveModifiedQuestion(formQuestion, dataQuestion){
         }
         else{
             // Client error
-            onerror("Il n'est pas possible d'avoir un titre vide");
+            errorClient("Il n'est pas possible d'avoir un titre vide");
         }
     }
     if (dataQuestion.type != type){
@@ -345,7 +369,7 @@ function saveModifiedQuestion(formQuestion, dataQuestion){
         }
         else{
             // Client error
-            onerror("Il n'est pas possible d'avoir un type vide")
+            errorClient("Il n'est pas possible d'avoir un type vide")
         }
     }
     if (Object.keys(bodyRequest).length > 1){
@@ -357,7 +381,7 @@ function saveModifiedQuestion(formQuestion, dataQuestion){
         })
         .then(response => {
             if (response.ok){
-                console.log('Update Success');
+                successMessage('Update Success');
                 return response.json();
             }
             else throw new Error('Problème ajax: ' + response.status);
@@ -365,11 +389,10 @@ function saveModifiedQuestion(formQuestion, dataQuestion){
         .then(dataQuestion => {
             fillFormQuestion(formQuestion, dataQuestion)
         })
-        .catch(onerror);
+        .catch(errorServeur);
     }
     else{
-        // Client error
-        onerror("Aucun changement de fait");
+        errorClient("Aucun changement de fait");
     }
 }
 
@@ -382,8 +405,7 @@ function saveNewQuestion(formQuestionnaire, formQuestion){
     if (!title) errors.push("Il est impossible de créer une question avec un title vide");
     if (!type) errors.push("Il est impossible de créer une question avec un type vide");
     if (errors.length){
-        // Client error
-        errors.forEach(error => onerror(error));
+        errors.forEach(error => errorClient(error));
     }
     else {
         // Création de la requête permettant de modifier le questionnaire
@@ -394,7 +416,7 @@ function saveNewQuestion(formQuestionnaire, formQuestion){
         })
         .then(response => {
             if (response.ok){
-                console.log('Insert Success');
+                successMessage('Insert Success');
                 refreshQuestionnaireList();
                 return response.json();
             }
@@ -403,6 +425,6 @@ function saveNewQuestion(formQuestionnaire, formQuestion){
         .then(dataQuestion => {
             fillFormQuestion(formQuestion, dataQuestion)
         })
-        .catch(onerror);
+        .catch(errorServeur);
     }
 }
