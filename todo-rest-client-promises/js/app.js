@@ -67,9 +67,7 @@ function remplirQuestionnaires(questionnaires){
     questionnaires.forEach(questionnaire => {
         let liQuestionnaire = document.createElement('li');
         liQuestionnaire.textContent = questionnaire.name;
-        liQuestionnaire.addEventListener('click', function(){
-            getDetailQuestionnaire(questionnaire);
-        });
+        liQuestionnaire.addEventListener('click', () => getDetailQuestionnaire(questionnaire));
         liste.append(liQuestionnaire);
     });
 }
@@ -147,7 +145,8 @@ function formQuestionnaire(isnew){
     let currentQuestionnaire = document.getElementById('currentQuestionnaire');
     clearContent(currentQuestionnaire);
     // A changer pour permettre une meilleur flexibilité
-    let form = currentQuestionnaire;
+    let form = document.createElement('div');
+    currentQuestionnaire.append(form);
 
     let titreQuestionnaire = document.createElement('h1');
     titreQuestionnaire.textContent = 'Titre';
@@ -165,16 +164,13 @@ function formQuestionnaire(isnew){
 
     let tools = document.getElementById('tools');
 
-    // document.querySelector('#tools #del').onclick = deleteQuestionnaire;
     let del = tools.querySelector('#del');
     if (!del){
         if (!isnew){
             del = document.createElement('img');
             del.id = 'del';
             del.src = 'img/delete.png';
-            del.onclick = function(){
-                deleteQuestionnaire(form)
-            }
+            del.onclick = () => deleteQuestionnaire(form);
             tools.append(del);
         }
     }
@@ -183,9 +179,7 @@ function formQuestionnaire(isnew){
             del.remove();
         }
         else{
-            del.onclick = function(){
-                deleteQuestionnaire(form)
-            }
+            del.onclick = () => deleteQuestionnaire(form);
         }
     }
 
@@ -199,15 +193,11 @@ function formQuestionnaire(isnew){
 
     if (isnew){
         save.alt = 'Enregistrer le questionnaire';
-        save.onclick = function(){
-            saveNewQuestionnaire(form);
-        }
+        save.onclick = () => saveNewQuestionnaire(form);
     }
     else{
         save.alt = 'Sauvegarder le changement';
-        save.onclick = function(){
-            saveModifiedQuestionnaire(form);
-        };
+        save.onclick = () => saveModifiedQuestionnaire(form);
     }
     return form;
 }
@@ -253,9 +243,7 @@ function formQuestion(formQuestionnaire){
 
     let saveQuestion = document.createElement('img');
     saveQuestion.src = 'img/save.png';
-    saveQuestion.onclick = function(){
-        saveNewQuestion(formQuestionnaire, liQuestion);
-    }
+    saveQuestion.onclick = () => saveNewQuestion(formQuestionnaire, liQuestion);
     boutons.append(saveQuestion);
     return liQuestion;
 }
@@ -275,16 +263,12 @@ function fillFormQuestion(formQuestion, dataQuestion){
 
     let deleteQuestionButton = document.createElement('img');
     deleteQuestionButton.src = 'img/delete.png';
-    deleteQuestionButton.onclick = function(){
-        deleteQuestion(formQuestion);
-    }
+    deleteQuestionButton.onclick = () => deleteQuestion(formQuestion);
     boutons.append(deleteQuestionButton);
 
     let saveQuestion = document.createElement('img');
     saveQuestion.src = 'img/save.png';
-    saveQuestion.onclick = function(){
-        saveModifiedQuestion(formQuestion, dataQuestion);
-    }
+    saveQuestion.onclick = () => saveModifiedQuestion(formQuestion, dataQuestion);
     boutons.append(saveQuestion);
 }
 
@@ -295,11 +279,9 @@ function fillFormQuestionnaire(formQuestionnaire, dataQuestionnaire){
         fillFormQuestion(formQuestion(formQuestionnaire), question);
     });
     let newQuestion = document.createElement('img');
-    document.getElementById('currentQuestionnaire').append(newQuestion);
+    formQuestionnaire.append(newQuestion);
     newQuestion.src = "img/new.png";
-    newQuestion.onclick = function(){
-        formQuestion(formQuestionnaire);
-    };
+    newQuestion.onclick = () => formQuestion(formQuestionnaire);
 }
 
 function saveModifiedQuestionnaire(formQuestionnaire){
@@ -372,8 +354,7 @@ function deleteQuestionnaire(formQuestionnaire){
     })
     .then(dataQuestionnaire => {
         successMessage('Supression du questionnaire ' + dataQuestionnaire.name);
-        // Une fois le form détacher du #currentQuestionnaire, mettre un remove au form
-        clearContent(formQuestionnaire);
+        formQuestionnaire.remove();
         document.getElementById('del').remove();
         document.getElementById('save').remove();
     })
