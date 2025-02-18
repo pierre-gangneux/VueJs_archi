@@ -1,338 +1,187 @@
-function clearContent(element){
-    while(element.firstChild){
-        element.removeChild(element.firstChild);
-    }
-}
-
-
-function showNotification(message, color, bold) {
-    let container = document.getElementById("notification-container");
-    if (!container) {
-        container = document.createElement("div");
-        container.id = "notification-container";
-        container.style.position = "fixed";
-        container.style.top = "25px";
-        container.style.left = "25px";
-        container.style.zIndex = "1000";
-        container.style.display = "flex";
-        container.style.flexDirection = "column-reverse";
-        container.style.gap = "5px";
-        document.body.appendChild(container);
+class Utilitaire{
+    static clearContent(element){
+        while(element.firstChild){
+            element.removeChild(element.firstChild);
+        }
     }
 
-    const notification = document.createElement("div");
-    notification.textContent = message;
-    if (color){
-        notification.style.background = color;
-    }
-    else{
-        notification.style.background = "#333";
-    }
-    if (bold){
-        notification.style.fontWeight = "bold";
-    }
-    notification.style.color = "white";
-    notification.style.padding = "10px";
-    notification.style.borderRadius = "15px";
-    notification.style.opacity = "0";
-    notification.style.transition = "opacity 0.3s, transform 0.3s";
-    notification.style.transform = "translateY(-10px)";
-    notification.style.minWidth = "10em";
-
-    container.appendChild(notification);
-
-    for (i = -10; i < 0; i += 2){
-        setTimeout(() => {
-            notification.style.transform = `translateY(${i})`;
-        }, 2);
-    }
-    setTimeout(() => {
-        notification.style.opacity = "1";
-    }, 10);
-
-    setTimeout(() => {
-        notification.style.opacity = "0";
-        notification.style.transform = "translateY(-10px)";
-        setTimeout(() => notification.remove(), 300);
-    }, 3000);
-}
-
-function showMessage(err, msg, color, bold){
-    if (msg != ''){
-        showNotification(msg, color, bold);
-    }
-    if (err != ''){
-        let css = '';
+    static showNotification(message, color, bold) {
+        let container = document.getElementById("notification-container");
+        if (!container) {
+            container = document.createElement("div");
+            container.id = "notification-container";
+            container.style.position = "fixed";
+            container.style.top = "25px";
+            container.style.left = "25px";
+            container.style.zIndex = "1000";
+            container.style.display = "flex";
+            container.style.flexDirection = "column-reverse";
+            container.style.gap = "5px";
+            document.body.appendChild(container);
+        }
+    
+        const notification = document.createElement("div");
+        notification.textContent = message;
         if (color){
-            css += `color:${color};`;
+            notification.style.background = color;
+        }
+        else{
+            notification.style.background = "#333";
         }
         if (bold){
-            css += 'font-weight: bold;';
+            notification.style.fontWeight = "bold";
         }
-        if (css.length){
-            console.log(`%c ${err}`, css);
+        notification.style.color = "white";
+        notification.style.padding = "10px";
+        notification.style.borderRadius = "15px";
+        notification.style.opacity = "0";
+        notification.style.transition = "opacity 0.3s, transform 0.3s";
+        notification.style.transform = "translateY(-10px)";
+        notification.style.minWidth = "10em";
+    
+        container.appendChild(notification);
+    
+        for (let i = -10; i < 0; i += 2){
+            setTimeout(() => {
+                notification.style.transform = `translateY(${i})`;
+            }, 2);
         }
-        else{
-            console.log(err);
+        setTimeout(() => {
+            notification.style.opacity = "1";
+        }, 10);
+    
+        setTimeout(() => {
+            notification.style.opacity = "0";
+            notification.style.transform = "translateY(-10px)";
+            setTimeout(() => notification.remove(), 300);
+        }, 3000);
+    }
+
+    static showMessage(err, msg, color, bold){
+        if (msg != ''){
+            Utilitaire.showNotification(msg, color, bold);
         }
-    }
-}
-
-function errorServeur(err, msg){
-    if (err && !msg){
-        showMessage(err=err, msg='', color='red', bold=true);
-    }
-    if (!err && msg){
-        showMessage(err='', msg=msg, color='red', bold=true);
-    }
-    if (err && msg){
-        showMessage(err=err, msg=msg, color='red', bold=true);
-    }
-}
-
-function errorClient(msg){
-    showMessage(err=msg, msg=msg, color='orange', bold=true);
-}
-
-function successMessage(msg){
-    showMessage(err=msg, msg=msg, color='green', bold=true);
-}
-
-document.getElementById('button').onclick = refreshQuestionnaireList;
-
-document.querySelector('#tools #add').onclick = formQuestionnaire;
-
-function remplirQuestionnaires(questionnaires){
-    let liste = document.createElement('ul');
-    document.getElementById('questionnaires').append(liste);
-    questionnaires.forEach(questionnaire => {
-        let liQuestionnaire = document.createElement('li');
-        liQuestionnaire.textContent = questionnaire.name;
-        liQuestionnaire.addEventListener('click', () => getDetailQuestionnaire(questionnaire));
-        liste.append(liQuestionnaire);
-    });
-}
-
-function refreshQuestionnaireList(){
-    clearContent(document.getElementById('questionnaires'));
-    fetch('http://127.0.0.1:5000/api/questionnaires')
-    .then(response => {
-        if (response.ok) return response.json();
-        else throw new Error('Problème ajax: ' + response.status);
-    })
-    .then(remplirQuestionnaires)
-    .catch(err => errorServeur(err, 'Impossible de récupérer les questionnaires à réaliser !'));
-}
-
-
-
-
-
-function formQuestion(formQuestionnaire){
-    // Création de l'élément li
-    let liQuestion = document.createElement('li');
-    liQuestion.style.border = '0.1em solid black';
-    formQuestionnaire.querySelector('#listeQuestions').append(liQuestion);
-
-    // Création de l'élément du titre de la question
-    let titre = document.createElement('div');
-    liQuestion.append(titre);
-
-    let titreQuestion = document.createElement('label');
-    titreQuestion.setAttribute('for', 'titreQuestion');
-    titreQuestion.setAttribute('id', 'titreQuestionLabel');
-    titreQuestion.textContent = 'Titre : '
-    titre.append(titreQuestion);
-
-    let titreQuestionInput = document.createElement('input');
-    titreQuestionInput.id = 'titreQuestion';
-    titre.append(titreQuestionInput);
-
-    // Création de l'élément du type de la question
-    let type = document.createElement('div');
-    liQuestion.append(type);
-
-    let typeQuestion = document.createElement('label');
-    typeQuestion.setAttribute('for', 'typeQuestion');
-    typeQuestion.setAttribute('id', 'typeQuestionLabel');
-    typeQuestion.textContent = 'Type : ';
-    type.append(typeQuestion);
-
-    let typeQuestionInput = document.createElement('input');
-    typeQuestionInput.id = 'typeQuestion';
-    type.append(typeQuestionInput);
-
-    // Boutons de gestion de la question
-    let boutons = document.createElement('div');
-    boutons.id = 'boutonsQuestion';
-    liQuestion.append(boutons);
-
-    let saveQuestion = document.createElement('img');
-    saveQuestion.src = 'img/save.png';
-    saveQuestion.onclick = () => saveNewQuestion(formQuestionnaire, liQuestion);
-    boutons.append(saveQuestion);
-    return liQuestion;
-}
-
-function fillFormQuestion(formQuestion, dataQuestion){
-    formQuestion.setAttribute('QuestionId', dataQuestion.id);
-
-    let titreQuestionInput = formQuestion.querySelector('#titreQuestion');
-    titreQuestionInput.value = dataQuestion.title;
-
-    let typeQuestionInput = formQuestion.querySelector('#typeQuestion');
-    typeQuestionInput.value = dataQuestion.type;
-
-    // Boutons de gestion de la question
-    let boutons = formQuestion.querySelector('#boutonsQuestion');
-    clearContent(boutons);
-
-    let deleteQuestionButton = document.createElement('img');
-    deleteQuestionButton.src = 'img/delete.png';
-    deleteQuestionButton.onclick = () => deleteQuestion(formQuestion);
-    boutons.append(deleteQuestionButton);
-
-    let saveQuestion = document.createElement('img');
-    saveQuestion.src = 'img/save.png';
-    saveQuestion.onclick = () => saveModifiedQuestion(formQuestion, dataQuestion);
-    boutons.append(saveQuestion);
-}
-
-function saveNewQuestion(formQuestionnaire, formQuestion){
-    let title = formQuestion.querySelector('#titreQuestion').value; // Récupère la valeur du title de la question
-    let type = formQuestion.querySelector('#typeQuestion').value; // Récupère la valeur du type de la question
-    let questionnaireId = formQuestionnaire.querySelector('#titreQuestionnaire').getAttribute('questionnaireId');
-
-    const errors = [];
-    if (!title) errors.push("Il est impossible de créer une question avec un title vide");
-    if (!type) errors.push("Il est impossible de créer une question avec un type vide");
-    if (errors.length){
-        errors.forEach(error => errorClient(error));
-    }
-    else {
-        // Création de la requête permettant de modifier le questionnaire
-        fetch('http://localhost:5000/api/questions',{
-        headers: {'Content-Type': 'application/json'},
-        method: 'POST',
-        body: JSON.stringify({"title":title, "type":type, "questionnaire_id":questionnaireId})
-        })
-        .then(response => {
-            if (response.ok){
-                successMessage('Insert Success');
-                refreshQuestionnaireList();
-                return response.json();
+        if (err != ''){
+            let css = '';
+            if (color){
+                css += `color:${color};`;
             }
+            if (bold){
+                css += 'font-weight: bold;';
+            }
+            if (css.length){
+                console.log(`%c ${err}`, css);
+            }
+            else{
+                console.log(err);
+            }
+        }
+    }
+    
+    static errorServeur(err, msg){
+        if (err && !msg){
+            Utilitaire.showMessage(err, '', 'red', true);
+        }
+        if (!err && msg){
+            Utilitaire.showMessage('', msg, 'red', true);
+        }
+        if (err && msg){
+            Utilitaire.showMessage(err, msg, 'red', true);
+        }
+    }
+
+    static errorClient(msg){
+        Utilitaire.showMessage(msg, msg, 'orange', true);
+    }
+
+    static successMessage(msg){
+        Utilitaire.showMessage(msg, msg, 'green', true);
+    }
+}
+
+
+class QuestionnaireListe extends HTMLUListElement {
+    constructor() {
+        if (QuestionnaireListe.instance) {
+            return QuestionnaireListe.instance;
+        }
+        super();
+        QuestionnaireListe.instance = this;
+        return this;
+    }
+
+    static getQuestionnaireListe() {
+        if (!QuestionnaireListe.instance) {
+            QuestionnaireListe.instance = new QuestionnaireListe();
+            document.getElementById('questionnaires').appendChild(QuestionnaireListe.instance);
+        }
+        return QuestionnaireListe.instance;
+    }
+
+    remplirQuestionnaires(questionnaires){questionnaires.forEach(questionnaireData => this.appendChild(new Questionnaire(questionnaireData)))}
+
+    refreshQuestionnaireList(){
+        Utilitaire.clearContent(this);
+        fetch('http://127.0.0.1:5000/api/questionnaires')
+        .then(response => {
+            if (response.ok) return response.json();
             else throw new Error('Problème ajax: ' + response.status);
         })
-        .then(dataQuestion => {
-            fillFormQuestion(formQuestion, dataQuestion)
-        })
-        .catch(errorServeur);
+        .then(questionnaires => this.remplirQuestionnaires(questionnaires))
+        .catch(err => Utilitaire.errorServeur(err, 'Impossible de récupérer les questionnaires à réaliser !'));
+    }
+
+    getQuestionnaire(questionnaireId){
+        // Ne fonctionne pas, à retravailler
+        let questionnaires = this.childNodes.values();
+        console.log(questionnaires);
+        for (let questionnaire of questionnaires){
+            console.log(questionnaire);
+        }
     }
 }
+customElements.define("questionnaire-liste", QuestionnaireListe, { extends: "ul" });
 
-function saveModifiedQuestion(formQuestion, dataQuestion){
-    let title = formQuestion.querySelector('#titreQuestion').value;
-    let type = formQuestion.querySelector('#typeQuestion').value;
-    let bodyRequest = {'question_id':dataQuestion.id};
-    if (dataQuestion.title != title){
-        if (title != ''){
-            bodyRequest.title = title;
-        }
-        else{
-            // Client error
-            errorClient("Il n'est pas possible d'avoir un titre vide");
-        }
-    }
-    if (dataQuestion.type != type){
-        if (type != ''){
-            bodyRequest.type = type;
-        }
-        else{
-            // Client error
-            errorClient("Il n'est pas possible d'avoir un type vide")
-        }
-    }
-    if (Object.keys(bodyRequest).length > 1){
-        // Création de la requête permettant de modifier la question
-        fetch('http://localhost:5000/api/questions',{
-            headers: {'Content-Type': 'application/json'},
-            method: 'PUT',
-            body: JSON.stringify(bodyRequest)
-        })
-        .then(response => {
-            if (response.ok){
-                successMessage('Update Success');
-                return response.json();
-            }
-            else throw new Error('Problème ajax: ' + response.status);
-        })
-        .then(dataQuestion => {
-            fillFormQuestion(formQuestion, dataQuestion)
-        })
-        .catch(errorServeur);
-    }
-    else{
-        errorClient("Aucun changement de fait");
-    }
-}
-
-function deleteQuestion(formQuestion){
-    fetch('http://localhost:5000/api/questions',{
-        headers: {'Content-Type': 'application/json'},
-        method: 'DELETE',
-        body: JSON.stringify({"question_id":formQuestion.getAttribute('questionId')})
-    })
-    .then(response => {
-        if (response.ok){
-            successMessage('Delete Success');
-            refreshQuestionnaireList();
-            return response.json();
-        }
-        else throw new Error('Problème ajax: ' + response.status);
-    })
-    .then(dataQuestion => {
-        successMessage('Supression de la question ' + dataQuestion.title);
-        formQuestion.remove();
-    })
-    .catch(errorServeur);
-}
-
-class Questionnaire{
+class Questionnaire extends HTMLLIElement {
     // Les datas du questionnaire
     constructor(data){
+        super();
         this.id = data.id;
         this.name = data.name;
         this.uri = data.uri;
+        this.textContent = this.name;
+        this.onclick = this.details;
     }
 
-    #getQuestions(){
-        fetch('http://127.0.0.1:5000' + this.uri)
+    async getQuestions(){
+        await fetch('http://127.0.0.1:5000' + this.uri)
         .then(response => {
             if (response.ok) return response.json();
             else throw new Error('Problème ajax: ' + response.status);
         })
         .then(dataQuestions => {
             // A changer pour obtenir les objets questions
-            this.questions = dataQuestions;
+            this.questions = []
+            dataQuestions.forEach(dataQuestion => this.questions.push(new Question(dataQuestion)));
         })
-        .catch(errorServeur);
+        .catch(Utilitaire.errorServeur);
     }
 
-    details(){
+    async details(){
         if (!this.questions){
-            this.#getQuestions();
+            await this.getQuestions();
         }
-        FormQuestionnaire().fillFormQuestionnaire(this);
+        new FormQuestionnaire().fillFormQuestionnaire(this);
     }
 }
+customElements.define("questionnaire-li", Questionnaire, { extends: "li" });
 
 class FormQuestionnaire extends HTMLDivElement {
     // Le formulaire du questionnaire
     constructor(isnew){
         super();
         let currentQuestionnaire = document.getElementById('currentQuestionnaire');
-        clearContent(currentQuestionnaire);
+        Utilitaire.clearContent(currentQuestionnaire);
         currentQuestionnaire.append(this);
 
         let titreQuestionnaire = document.createElement('h1');
@@ -389,21 +238,22 @@ class FormQuestionnaire extends HTMLDivElement {
     }
 
     fillFormQuestionnaire(questionnaire){
+        // modifier l'emplacement de l'id ou du questionnaire
         this.querySelector('#titreQuestionnaire').setAttribute('questionnaireId', questionnaire.id);
         this.querySelector('#titreQuestionnaireInput').value = questionnaire.name;
         questionnaire.questions.forEach(question => {
-            FormQuestion(this).fillFormQuestion(question);
+            new FormQuestion(this).fillFormQuestion(question);
         });
         let newQuestion = document.createElement('img');
         this.append(newQuestion);
         newQuestion.src = "img/new.png";
-        newQuestion.onclick = () => formQuestion(this);
+        newQuestion.onclick = () => new FormQuestion(this);
     }
 
     saveNewQuestionnaire(){
-        let name = this.querySelector('#titreQuestionnaireInput').value
+        let name = this.querySelector('#titreQuestionnaireInput').value;
         if (name == ''){
-            errorClient('Il est impossible de créer un questionnaire avec un titre vide');
+            Utilitaire.errorClient('Il est impossible de créer un questionnaire avec un titre vide');
         }
         else{
             // Création de la requête permettant de modifier le questionnaire
@@ -414,24 +264,25 @@ class FormQuestionnaire extends HTMLDivElement {
             })
             .then(response => {
                 if (response.ok){
-                    successMessage('Insert Success');
-                    refreshQuestionnaireList();
+                    Utilitaire.successMessage('Insert Success');
+                    QuestionnaireListe.getQuestionnaireListe().refreshQuestionnaireList();
                     return response.json();
                 }
                 else throw new Error('Problème ajax: ' + response.status);
             })
             .then(dataQuestionnaire => {
-                getDetailQuestionnaire(dataQuestionnaire);
+                QuestionnaireListe.getQuestionnaireListe().getQuestionnaire(dataQuestionnaire.id) // .details();
+                // Nécessite d'afficher le questionnaire nouvellement créer
                 document.getElementById('save').remove();
             })
-            .catch(errorServeur);
+            .catch(Utilitaire.errorServeur);
         }
     }
 
     saveModifiedQuestionnaire(){
         let name = this.querySelector('#titreQuestionnaireInput').value
         if (name == ''){
-            errorClient('Il est impossible de modifier un questionnaire avec un titre vide');
+            Utilitaire.errorClient('Il est impossible de modifier un questionnaire avec un titre vide');
         }
         else{
             // Création de la requête permettant de modifier le questionnaire
@@ -442,12 +293,12 @@ class FormQuestionnaire extends HTMLDivElement {
             })
             .then(response => {
                 if (response.ok){
-                    successMessage('Update Success');
-                    refreshQuestionnaireList();
+                    Utilitaire.successMessage('Update Success');
+                    QuestionnaireListe.getQuestionnaireListe().refreshQuestionnaireList();
                 }
                 else throw new Error('Problème ajax: ' + response.status);
             })
-            .catch(errorServeur);
+            .catch(Utilitaire.errorServeur);
         }
     }
 
@@ -460,19 +311,19 @@ class FormQuestionnaire extends HTMLDivElement {
         })
         .then(response => {
             if (response.ok){
-                successMessage('Delete Success');
-                refreshQuestionnaireList();
+                Utilitaire.successMessage('Delete Success');
+                QuestionnaireListe.getQuestionnaireListe().refreshQuestionnaireList();
                 return response.json();
             }
             else throw new Error('Problème ajax: ' + response.status);
         })
         .then(dataQuestionnaire => {
-            successMessage('Supression du questionnaire ' + dataQuestionnaire.name);
+            Utilitaire.successMessage('Supression du questionnaire ' + dataQuestionnaire.name);
             this.remove();
             document.getElementById('del').remove();
             document.getElementById('save').remove();
         })
-        .catch(errorServeur);
+        .catch(Utilitaire.errorServeur);
     }
 }
 customElements.define("form-questionnaire", FormQuestionnaire, { extends: "div" });
@@ -531,7 +382,7 @@ class FormQuestion extends HTMLLIElement {
 
         let saveQuestion = document.createElement('img');
         saveQuestion.src = 'img/save.png';
-        saveQuestion.onclick = () => saveNewQuestion(formQuestionnaire, this);
+        saveQuestion.onclick = () => this.saveNewQuestion(formQuestionnaire);
         boutons.append(saveQuestion);
     }
 
@@ -546,16 +397,16 @@ class FormQuestion extends HTMLLIElement {
     
         // Boutons de gestion de la question
         let boutons = this.querySelector('#boutonsQuestion');
-        clearContent(boutons);
+        Utilitaire.clearContent(boutons);
     
         let deleteQuestionButton = document.createElement('img');
         deleteQuestionButton.src = 'img/delete.png';
-        deleteQuestionButton.onclick = () => deleteQuestion(this);
+        deleteQuestionButton.onclick = () => this.deleteQuestion();
         boutons.append(deleteQuestionButton);
     
         let saveQuestion = document.createElement('img');
         saveQuestion.src = 'img/save.png';
-        saveQuestion.onclick = () => saveModifiedQuestion(this, question);
+        saveQuestion.onclick = () => this.saveModifiedQuestion(question);
         boutons.append(saveQuestion);
     }
 
@@ -568,7 +419,7 @@ class FormQuestion extends HTMLLIElement {
         if (!title) errors.push("Il est impossible de créer une question avec un title vide");
         if (!type) errors.push("Il est impossible de créer une question avec un type vide");
         if (errors.length){
-            errors.forEach(error => errorClient(error));
+            errors.forEach(error => Utilitaire.errorClient(error));
         }
         else {
             // Création de la requête permettant de modifier le questionnaire
@@ -579,8 +430,9 @@ class FormQuestion extends HTMLLIElement {
             })
             .then(response => {
                 if (response.ok){
-                    successMessage('Insert Success');
-                    refreshQuestionnaireList();
+                    Utilitaire.successMessage('Insert Success');
+                    // Nécessaire de refresh ? Mérite réflexion
+                    QuestionnaireListe.getQuestionnaireListe().refreshQuestionnaireList();
                     return response.json();
                 }
                 else throw new Error('Problème ajax: ' + response.status);
@@ -590,7 +442,7 @@ class FormQuestion extends HTMLLIElement {
                 // Gérer la liste des questions du questionnaire côté client, la mettre à jour en remplaçant la question
                 this.fillFormQuestion(dataQuestion)
             })
-            .catch(errorServeur);
+            .catch(Utilitaire.errorServeur);
         }
     }
     
@@ -604,7 +456,7 @@ class FormQuestion extends HTMLLIElement {
             }
             else{
                 // Client error
-                errorClient("Il n'est pas possible d'avoir un titre vide");
+                Utilitaire.errorClient("Il n'est pas possible d'avoir un titre vide");
             }
         }
         if (question.type != type){
@@ -613,7 +465,7 @@ class FormQuestion extends HTMLLIElement {
             }
             else{
                 // Client error
-                errorClient("Il n'est pas possible d'avoir un type vide")
+                Utilitaire.errorClient("Il n'est pas possible d'avoir un type vide")
             }
         }
         if (Object.keys(bodyRequest).length > 1){
@@ -625,7 +477,7 @@ class FormQuestion extends HTMLLIElement {
             })
             .then(response => {
                 if (response.ok){
-                    successMessage('Update Success');
+                    Utilitaire.successMessage('Update Success');
                     return response.json();
                 }
                 else throw new Error('Problème ajax: ' + response.status);
@@ -635,10 +487,10 @@ class FormQuestion extends HTMLLIElement {
                 // Gérer la liste des questions du questionnaire côté client, la mettre à jour en remplaçant la question
                 this.fillFormQuestion(dataQuestion)
             })
-            .catch(errorServeur);
+            .catch(Utilitaire.errorServeur);
         }
         else{
-            errorClient("Aucun changement de fait");
+            Utilitaire.errorClient("Aucun changement de fait");
         }
     }
     
@@ -651,17 +503,22 @@ class FormQuestion extends HTMLLIElement {
         .then(response => {
             if (response.ok){
                 // Nécessaire ? On ne supprime qu'une question après tout. Juste reload les questions du questionnaire après la suppression
-                refreshQuestionnaireList();
-                successMessage('Delete Success');
+                QuestionnaireListe.getQuestionnaireListe().refreshQuestionnaireList();
+                Utilitaire.successMessage('Delete Success');
                 return response.json();
             }
             else throw new Error('Problème ajax: ' + response.status);
         })
         .then(dataQuestion => {
-            successMessage('Supression de la question ' + dataQuestion.title);
+            Utilitaire.successMessage('Supression de la question ' + dataQuestion.title);
             this.remove();
         })
-        .catch(errorServeur);
+        .catch(Utilitaire.errorServeur);
     }
 }
 customElements.define("form-question", FormQuestion, { extends: "li" });
+
+
+document.getElementById('button').onclick = () => QuestionnaireListe.getQuestionnaireListe().refreshQuestionnaireList();
+
+document.querySelector('#tools #add').onclick = () => new FormQuestionnaire(true);
