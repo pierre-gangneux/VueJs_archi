@@ -118,27 +118,20 @@ class QuestionnaireListe extends HTMLUListElement {
         return QuestionnaireListe.instance;
     }
 
-    remplirQuestionnaires(questionnaires){questionnaires.forEach(questionnaireData => this.appendChild(new Questionnaire(questionnaireData)))}
+    async remplirQuestionnaires(questionnaires){questionnaires.forEach(questionnaireData => this.appendChild(new Questionnaire(questionnaireData)))}
 
-    refreshQuestionnaireList(){
+    async refreshQuestionnaireList(){
         Utilitaire.clearContent(this);
-        fetch('http://127.0.0.1:5000/api/questionnaires')
+        await fetch('http://127.0.0.1:5000/api/questionnaires')
         .then(response => {
             if (response.ok) return response.json();
             else throw new Error('Problème ajax: ' + response.status);
         })
-        .then(questionnaires => this.remplirQuestionnaires(questionnaires))
+        .then(async questionnaires => await this.remplirQuestionnaires(questionnaires))
         .catch(err => Utilitaire.errorServeur(err, 'Impossible de récupérer les questionnaires à réaliser !'));
     }
 
-    getQuestionnaire(questionnaireId){
-        // Ne fonctionne pas, à retravailler
-        let questionnaires = this.childNodes.values();
-        console.log(questionnaires);
-        for (let questionnaire of questionnaires){
-            console.log(questionnaire);
-        }
-    }
+    getQuestionnaire(questionnaireId){for (let questionnaire of this.children){if (parseInt(questionnaire.id) === questionnaireId){return questionnaire;}}}
 }
 customElements.define("questionnaire-liste", QuestionnaireListe, { extends: "ul" });
 
@@ -265,14 +258,13 @@ class FormQuestionnaire extends HTMLDivElement {
             .then(response => {
                 if (response.ok){
                     Utilitaire.successMessage('Insert Success');
-                    QuestionnaireListe.getQuestionnaireListe().refreshQuestionnaireList();
                     return response.json();
                 }
                 else throw new Error('Problème ajax: ' + response.status);
             })
-            .then(dataQuestionnaire => {
-                QuestionnaireListe.getQuestionnaireListe().getQuestionnaire(dataQuestionnaire.id) // .details();
-                // Nécessite d'afficher le questionnaire nouvellement créer
+            .then(async dataQuestionnaire => {
+                await QuestionnaireListe.getQuestionnaireListe().refreshQuestionnaireList();
+                QuestionnaireListe.getQuestionnaireListe().getQuestionnaire(dataQuestionnaire.id).details();
                 document.getElementById('save').remove();
             })
             .catch(Utilitaire.errorServeur);
