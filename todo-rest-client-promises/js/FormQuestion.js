@@ -3,7 +3,11 @@ class FormQuestion extends HTMLLIElement {
     constructor(formQuestionnaire){
         // Création de l'élément li
         super();
+        this.style.margin = "1em";
         this.style.border = '0.1em solid black';
+        this.style.width = "fit-content";
+        this.style.listStyle = "none";
+        this.style.borderRadius = "15px";
         formQuestionnaire.querySelector('#listeQuestions').append(this);
         this.formQuestionnaire = formQuestionnaire;
 
@@ -11,11 +15,17 @@ class FormQuestion extends HTMLLIElement {
         let titre = document.createElement('div');
         this.append(titre);
 
+        titre.style.display = "flex";
+        titre.style.alignItems = "center"
+        titre.style.justifyContent = "space-between"
+        titre.style.padding = "0.3em";
+        titre.style.gap = "0.5em";
+
         // Création du label du titre de la question
         let titreQuestion = document.createElement('label');
         titreQuestion.setAttribute('for', 'titreQuestion');
         titreQuestion.setAttribute('id', 'titreQuestionLabel');
-        titreQuestion.textContent = 'Titre : '
+        titreQuestion.textContent = 'Titre';
         titre.append(titreQuestion);
 
         // Création de l'input du titre de la question
@@ -23,21 +33,35 @@ class FormQuestion extends HTMLLIElement {
         titreQuestionInput.id = 'titreQuestion';
         titre.append(titreQuestionInput);
 
+        titreQuestionInput.style.padding = "0.5em";
+        titreQuestionInput.style.borderRadius = "15px";
+        titreQuestionInput.style.border = "none";
+
         // Création de l'élément du type de la question
         let type = document.createElement('div');
         this.append(type);
+
+        type.style.display = "flex";
+        type.style.alignItems = "center";
+        type.style.justifyContent = "space-between";
+        type.style.padding = "0.3em";
+        type.style.gap = "0.5em";
 
         // Création du label du type de la question
         let typeQuestion = document.createElement('label');
         typeQuestion.setAttribute('for', 'typeQuestion');
         typeQuestion.setAttribute('id', 'typeQuestionLabel');
-        typeQuestion.textContent = 'Type : ';
+        typeQuestion.textContent = 'Type';
         type.append(typeQuestion);
 
         // Création de l'input du type de la question
         let typeQuestionInput = document.createElement('input');
         typeQuestionInput.id = 'typeQuestion';
         type.append(typeQuestionInput);
+
+        typeQuestionInput.style.padding = "0.5em";
+        typeQuestionInput.style.borderRadius = "15px";
+        typeQuestionInput.style.border = "none";
 
         // Boutons de gestion de la question
         let boutons = document.createElement('div');

@@ -2,10 +2,6 @@ class FormQuestionnaire extends HTMLDivElement {
     // Le formulaire du questionnaire
     constructor(isnew){
         super();
-        // Remplace le formulaire afficher
-        let currentQuestionnaire = document.getElementById('currentQuestionnaire');
-        Utilitaire.clearContent(currentQuestionnaire);
-        currentQuestionnaire.append(this);
 
         // Création du nom du questionnaire
         let titreQuestionnaire = document.createElement('h1');
@@ -13,13 +9,21 @@ class FormQuestionnaire extends HTMLDivElement {
         titreQuestionnaire.id = 'titreQuestionnaire';
         this.append(titreQuestionnaire);
 
+        titreQuestionnaire.style.display = "flex";
+        titreQuestionnaire.style.alignItems = "center";
+        titreQuestionnaire.style.padding = "0.3em";
+        titreQuestionnaire.style.gap = "0.5em";
+
         // Création de l'input pour le nom du questionnaire
         let titreQuestionnaireInput = document.createElement('input');
         titreQuestionnaireInput.type = 'text';
         titreQuestionnaireInput.id = 'titreQuestionnaireInput';
         titreQuestionnaire.append(titreQuestionnaireInput);
-        
-        // Le créer si le questionnaire n'est pas nouveau ?
+
+        titreQuestionnaireInput.style.padding = "0.5em";
+        titreQuestionnaireInput.style.borderRadius = "15px";
+        titreQuestionnaireInput.style.border = "none";
+
         if (!isnew){
             let questionsQuestionnaire = document.createElement('ul');
             questionsQuestionnaire.id = 'listeQuestions';
@@ -203,8 +207,6 @@ class FormQuestionnaire extends HTMLDivElement {
         currentQuestionnaire.append(this);
     }
     
-    static newFormQuestionnaire(){
-        return new FormQuestionnaire(true).show();
-    }
+    static newFormQuestionnaire(){return new FormQuestionnaire(true).show()}
 }
 customElements.define("form-questionnaire", FormQuestionnaire, { extends: "div" });

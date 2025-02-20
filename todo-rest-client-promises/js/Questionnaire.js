@@ -7,6 +7,10 @@ class Questionnaire extends HTMLLIElement {
         this.uri = data.uri;
         this.textContent = this.name;
         this.onclick = this.details;
+        
+        this.style.listStyle = "none";
+        this.style.fontWeight = "bold";
+        this.style.textDecoration = "underline";
     }
 
     async getQuestions(){
