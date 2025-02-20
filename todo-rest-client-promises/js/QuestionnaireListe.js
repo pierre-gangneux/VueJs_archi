@@ -1,5 +1,6 @@
 class QuestionnaireListe extends HTMLUListElement {
-    constructor() {
+    // Implémentation du pattern Singleton
+    constructor(){
         if (QuestionnaireListe.instance) {
             return QuestionnaireListe.instance;
         }
@@ -8,8 +9,9 @@ class QuestionnaireListe extends HTMLUListElement {
         return this;
     }
 
-    static getQuestionnaireListe() {
-        if (!QuestionnaireListe.instance) {
+    static getQuestionnaireListe(){
+        // Si l'instance n'existe pas, on la créer et l'affiche
+        if (!QuestionnaireListe.instance){
             QuestionnaireListe.instance = new QuestionnaireListe();
             document.getElementById('questionnaires').appendChild(QuestionnaireListe.instance);
         }

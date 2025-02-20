@@ -1,23 +1,24 @@
 class FormQuestion extends HTMLLIElement {
     // Le formulaire de la question
-    // Corriger la construction des fonctions pour les adapter à la nouvelle structure
     constructor(formQuestionnaire){
-        super();
-
         // Création de l'élément li
+        super();
         this.style.border = '0.1em solid black';
         formQuestionnaire.querySelector('#listeQuestions').append(this);
+        this.formQuestionnaire = formQuestionnaire;
 
         // Création de l'élément du titre de la question
         let titre = document.createElement('div');
         this.append(titre);
 
+        // Création du label du titre de la question
         let titreQuestion = document.createElement('label');
         titreQuestion.setAttribute('for', 'titreQuestion');
         titreQuestion.setAttribute('id', 'titreQuestionLabel');
         titreQuestion.textContent = 'Titre : '
         titre.append(titreQuestion);
 
+        // Création de l'input du titre de la question
         let titreQuestionInput = document.createElement('input');
         titreQuestionInput.id = 'titreQuestion';
         titre.append(titreQuestionInput);
@@ -26,12 +27,14 @@ class FormQuestion extends HTMLLIElement {
         let type = document.createElement('div');
         this.append(type);
 
+        // Création du label du type de la question
         let typeQuestion = document.createElement('label');
         typeQuestion.setAttribute('for', 'typeQuestion');
         typeQuestion.setAttribute('id', 'typeQuestionLabel');
         typeQuestion.textContent = 'Type : ';
         type.append(typeQuestion);
 
+        // Création de l'input du type de la question
         let typeQuestionInput = document.createElement('input');
         typeQuestionInput.id = 'typeQuestion';
         type.append(typeQuestionInput);
@@ -41,94 +44,107 @@ class FormQuestion extends HTMLLIElement {
         boutons.id = 'boutonsQuestion';
         this.append(boutons);
 
+        // Création du bouton pour enregistrer la nouvelle question
         let saveQuestion = document.createElement('img');
         saveQuestion.src = 'img/save.png';
-        saveQuestion.onclick = () => this.saveNewQuestion(formQuestionnaire);
+        saveQuestion.onclick = () => this.saveNewQuestion();
         boutons.append(saveQuestion);
     }
 
     fillFormQuestion(question){
-        this.setAttribute('QuestionId', question.id);
-    
+        // Set de l'id et de la question
+        this.question = question;
+
+        // Set de la valeur du titre de la question
         let titreQuestionInput = this.querySelector('#titreQuestion');
         titreQuestionInput.value = question.title;
     
+        // Set de la valeur du type de la question
         let typeQuestionInput = this.querySelector('#typeQuestion');
         typeQuestionInput.value = question.type;
     
         // Boutons de gestion de la question
         let boutons = this.querySelector('#boutonsQuestion');
         Utilitaire.clearContent(boutons);
-    
+
+        // Création du bouton pour supprimer la question
         let deleteQuestionButton = document.createElement('img');
         deleteQuestionButton.src = 'img/delete.png';
         deleteQuestionButton.onclick = () => this.deleteQuestion();
         boutons.append(deleteQuestionButton);
-    
+
+        // Création du bouton pour sauvegarder les modifications de la question
         let saveQuestion = document.createElement('img');
         saveQuestion.src = 'img/save.png';
-        saveQuestion.onclick = () => this.saveModifiedQuestion(question);
+        saveQuestion.onclick = () => this.saveModifiedQuestion();
         boutons.append(saveQuestion);
     }
 
-    saveNewQuestion(formQuestionnaire){
-        let title = this.querySelector('#titreQuestion').value; // Récupère la valeur du title de la question
-        let type = this.querySelector('#typeQuestion').value; // Récupère la valeur du type de la question
-        let questionnaireId = formQuestionnaire.querySelector('#titreQuestionnaire').getAttribute('questionnaireId');
-    
+    saveNewQuestion(){
+        // Récupère la valeur du title de la question
+        let title = this.querySelector('#titreQuestion').value;
+        // Récupère la valeur du type de la question
+        let type = this.querySelector('#typeQuestion').value;
+        
+        // Récupère les erreurs
         const errors = [];
         if (!title) errors.push("Il est impossible de créer une question avec un title vide");
         if (!type) errors.push("Il est impossible de créer une question avec un type vide");
         if (errors.length){
+            // S'il y a des erreurs, les affiches
             errors.forEach(error => Utilitaire.errorClient(error));
         }
+        // S'il n'y a pas d'erreurs
         else {
             // Création de la requête permettant de modifier le questionnaire
             fetch('http://localhost:5000/api/questions',{
             headers: {'Content-Type': 'application/json'},
             method: 'POST',
-            body: JSON.stringify({"title":title, "type":type, "questionnaire_id":questionnaireId})
+            body: JSON.stringify({"title":title, "type":type, "questionnaire_id":this.formQuestionnaire.questionnaire.id})
             })
             .then(response => {
                 if (response.ok){
                     Utilitaire.successMessage('Insert Success');
-                    // Nécessaire de refresh ? Mérite réflexion
-                    QuestionnaireListe.getQuestionnaireListe().refreshQuestionnaireList();
                     return response.json();
                 }
                 else throw new Error('Problème ajax: ' + response.status);
             })
-            .then(dataQuestion => {
-                // Remplacer par une question
-                // Gérer la liste des questions du questionnaire côté client, la mettre à jour en remplaçant la question
-                this.fillFormQuestion(dataQuestion)
+            .then(async dataQuestion => {
+                // On met à jour la liste des questions du questionnaire
+                await this.formQuestionnaire.questionnaire.getQuestions();
+                // On affiche la question nouvellement créer
+                this.fillFormQuestion(this.formQuestionnaire.questionnaire.getQuestion(dataQuestion.id));
             })
             .catch(Utilitaire.errorServeur);
         }
     }
     
-    saveModifiedQuestion(question){
+    saveModifiedQuestion(){
+        // Récupère la valeur du title de la question
         let title = this.querySelector('#titreQuestion').value;
+        // Récupère la valeur du type de la question
         let type = this.querySelector('#typeQuestion').value;
-        let bodyRequest = {'question_id':question.id};
-        if (question.title != title){
+        let bodyRequest = {'question_id':this.question.id};
+
+        // Regarde si le titre à changer et s'il n'est pas vide
+        if (this.question.title != title){
             if (title != ''){
                 bodyRequest.title = title;
             }
             else{
-                // Client error
                 Utilitaire.errorClient("Il n'est pas possible d'avoir un titre vide");
             }
         }
-        if (question.type != type){
+        // Regarde si le type à changer et s'il n'est pas vide
+        if (this.question.type != type){
             if (type != ''){
                 bodyRequest.type = type;
             }
             else{
-                // Client error
                 Utilitaire.errorClient("Il n'est pas possible d'avoir un type vide")
             }
         }
+        // S'il y a une modification, on envoi une requête
         if (Object.keys(bodyRequest).length > 1){
             // Création de la requête permettant de modifier la question
             fetch('http://localhost:5000/api/questions',{
@@ -143,35 +159,39 @@ class FormQuestion extends HTMLLIElement {
                 }
                 else throw new Error('Problème ajax: ' + response.status);
             })
-            .then(dataQuestion => {
-                // Remplacer par une question
-                // Gérer la liste des questions du questionnaire côté client, la mettre à jour en remplaçant la question
-                this.fillFormQuestion(dataQuestion)
+            .then(async dataQuestion => {
+                // On met à jour la liste des questions du questionnaire
+                await this.formQuestionnaire.questionnaire.getQuestions();
+                // On affiche la question modifier
+                this.fillFormQuestion(this.formQuestionnaire.questionnaire.getQuestion(dataQuestion.id));
             })
             .catch(Utilitaire.errorServeur);
         }
+        // Sinon, on ne fait rien
         else{
             Utilitaire.errorClient("Aucun changement de fait");
         }
     }
     
     deleteQuestion(){
+        // Création de la requête permettant de supprimer la question
         fetch('http://localhost:5000/api/questions',{
             headers: {'Content-Type': 'application/json'},
             method: 'DELETE',
-            body: JSON.stringify({"question_id":this.getAttribute('questionId')})
+            body: JSON.stringify({"question_id":this.question.id})
         })
-        .then(response => {
+        .then(async response => {
             if (response.ok){
-                // Nécessaire ? On ne supprime qu'une question après tout. Juste reload les questions du questionnaire après la suppression
-                QuestionnaireListe.getQuestionnaireListe().refreshQuestionnaireList();
                 Utilitaire.successMessage('Delete Success');
+                // On met à jour la liste des questions du questionnaire
+                await this.formQuestionnaire.questionnaire.getQuestions();
                 return response.json();
             }
             else throw new Error('Problème ajax: ' + response.status);
         })
         .then(dataQuestion => {
-            Utilitaire.successMessage('Supression de la question ' + dataQuestion.title);
+            Utilitaire.successMessage(`Supression de la question ${dataQuestion.title}`);
+            // On supprime le formulaire
             this.remove();
         })
         .catch(Utilitaire.errorServeur);

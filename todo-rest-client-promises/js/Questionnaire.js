@@ -16,7 +16,6 @@ class Questionnaire extends HTMLLIElement {
             else throw new Error('Problème ajax: ' + response.status);
         })
         .then(dataQuestions => {
-            // A changer pour obtenir les objets questions
             this.questions = []
             dataQuestions.forEach(dataQuestion => this.questions.push(new Question(dataQuestion)));
         })
@@ -27,7 +26,13 @@ class Questionnaire extends HTMLLIElement {
         if (!this.questions){
             await this.getQuestions();
         }
-        new FormQuestionnaire().fillFormQuestionnaire(this);
+        if (!this.formQuestionnaire){
+            this.formQuestionnaire = new FormQuestionnaire();
+            this.formQuestionnaire.fillFormQuestionnaire(this);
+        }
+        this.formQuestionnaire.show();
     }
+
+    getQuestion(questionId){for(let question of this.questions){if(question.id == questionId){return question}}}
 }
 customElements.define("questionnaire-li", Questionnaire, { extends: "li" });
