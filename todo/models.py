@@ -1,4 +1,4 @@
-from sqlalchemy import Column, DateTime, Float, Integer, Text, Date, Boolean, Time, extract, func, between
+from sqlalchemy import Column, DateTime, Float, Integer, Text, Date, Boolean, Time, extract, func, between, ARRAY
 from sqlalchemy.orm import relationship
 from sqlalchemy.sql.schema import ForeignKey
 from .app import db
@@ -103,10 +103,10 @@ class Question(db.Model):
         self.questionnaire_id = id
 
 def get_questions_questionnaire(id_questionnaire):
-    try:
+    # try:
         return [question.to_json() for question in Question.query.filter(Question.questionnaire_id == id_questionnaire).all()]
-    except:
-        return None
+    # except:
+    #     return None
 
 def get_questions():
     return [question.to_json() for question in Question.query.all()]
@@ -144,22 +144,19 @@ def edit_question_row(json):
     return question.to_json()
 
 
-# class QuestionText(Question):
-#     id = db.Column(db.Integer, db.ForeignKey('question.id'), primary_key=True)
-#     reponse = db.Column(db.String(120))
-#     __mapper_args__ = {
-#         "polymorphic_identity": "questionText"
-#     }
+class QuestionText(Question):
+    id = db.Column(db.Integer, db.ForeignKey('question.id'), primary_key=True)
+    reponse = db.Column(db.String(120))
+
+    __mapper_args__ = {
+        "polymorphic_identity": "text"
+    }
 
 
-# class QuestionMultiples(Question):
-#     id = db.Column(db.Integer, db.ForeignKey('question.id'), primary_key=True)
-#     choix = db.Column(db.ARRAY(String))
-#     reponse = db.Column(db.ARRAY(String))
-#     __mapper_args__ = {
-#         "polymorphic_identity": "questionMultiples"
-#     }
 
-#     def __init__(self, title, questionType, questionnaire_id, choix, reponse):
-#         super().__init__(title, questionType, questionnaire_id)
-#     # def __init__(self, )
+class QuestionMultiples(Question):
+    id = db.Column(db.Integer, db.ForeignKey('question.id'), primary_key=True)
+
+    __mapper_args__ = {
+        "polymorphic_identity": "multiple"
+    }

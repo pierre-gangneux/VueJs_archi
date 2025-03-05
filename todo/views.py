@@ -111,7 +111,13 @@ def create_question():
         or get_questionnaire(request.json["questionnaire_id"]) is None
     ):
         abort(400)
-    question = Question(request.json["title"], request.json["type"], request.json["questionnaire_id"])
+    match request.json["type"]:
+        case "text":
+            question = QuestionText(request.json["title"], request.json["type"], request.json["questionnaire_id"])
+        case "multiple":
+            question = QuestionMultiples(request.json["title"], request.json["type"], request.json["questionnaire_id"])
+        case _:
+            abort(400)
     # question = new_question(request.json) regarde le contenu, créer la bonne question sinon abort(400)
     db.session.add(question)
     db.session.commit()
