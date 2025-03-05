@@ -73,6 +73,12 @@ class Question(db.Model):
     questionnaire_id = db.Column(db.Integer, db.ForeignKey('questionnaire.id'))
     questionnaire = db.relationship("Questionnaire", backref=db.backref("questions", lazy="dynamic"))
 
+    __mapper_args__ = {
+        "polymorphic_identity": "question",
+        "with_polymorphic": "*",
+        "polymorphic_on": questionType
+    }
+
     def __init__(self, title, questionType, questionnaire_id):
         self.id = get_next_id_Question()
         self.title = title
@@ -137,23 +143,9 @@ def edit_question_row(json):
     db.session.commit()
     return question.to_json()
 
-tasks=[
-{
-'id':1,
-'title':'Courses',
-'description':'Salade,Oignons,Pommes,Clementines',
-'done':True
-},
-{
-'id':2,
-'title':'ApprendreREST',
-'description':'Apprendremoncoursetcomprendrelesexemples',
-'done':False
-},
-{
-'id':3,
-'title':'ApprendreAjax',
-'description':'RevoirlesexemplesetecrireunclientRESTJSavecAjax',
-'done':False
-}
-]
+
+class QuestionText(Question):
+    id = db.Column(db.Integer, db.ForeignKey('question.id'), primary_key=True)
+    __mapper_args__ = {
+        "polymorphic_identity": "QuestionText"
+    }
