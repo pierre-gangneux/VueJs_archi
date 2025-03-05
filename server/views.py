@@ -1,6 +1,20 @@
 from flask import jsonify , abort , make_response , request, Flask, url_for, redirect
 from .app import app, db
-from .models import Questionnaire, Question, getQuestionnaires, get_questionnaire, get_questions_questionnaire, get_questions, get_question, delete_question_row, delete_questionnaire_row, edit_question_row, edit_questionnaire_row
+from .models import (
+    Questionnaire,
+    Question,
+    getQuestionnaires,
+    get_questionnaire,
+    get_questions_questionnaire,
+    get_questions,
+    get_question,
+    delete_question_row,
+    delete_questionnaire_row,
+    edit_question_row,
+    edit_questionnaire_row,
+    new_question
+)
+    
 
 
 @app.route("/")
@@ -111,16 +125,9 @@ def create_question():
         or get_questionnaire(request.json["questionnaire_id"]) is None
     ):
         abort(400)
-    match request.json["type"]:
-        case "text":
-            question = QuestionText(request.json["title"], request.json["type"], request.json["questionnaire_id"])
-        case "multiple":
-            question = QuestionMultiples(request.json["title"], request.json["type"], request.json["questionnaire_id"])
-        case _:
-            abort(400)
-    # question = new_question(request.json) regarde le contenu, créer la bonne question sinon abort(400)
-    db.session.add(question)
-    db.session.commit()
+    question = new_question(request.json)
+    if question is None:
+        abort(400)
     return jsonify(question.to_json()), 201
 
 # Modifier les questions et les questionnaires #

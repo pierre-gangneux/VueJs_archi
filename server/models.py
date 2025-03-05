@@ -79,10 +79,9 @@ class Question(db.Model):
         "polymorphic_on": questionType
     }
 
-    def __init__(self, title, questionType, questionnaire_id):
+    def __init__(self, title, questionnaire_id):
         self.id = get_next_id_Question()
         self.title = title
-        self.questionType = questionType
         self.questionnaire_id = questionnaire_id
 
     def to_json(self):
@@ -137,7 +136,8 @@ def edit_question_row(json):
     if "title" in json:
         question.set_title(json["title"])
     if "type" in json:
-        question.set_type(json["type"])
+        if json["type"] in ["texte", "multiple"]:
+            question.set_type(json["type"])
     if "questionnaire_id" in json:
         question.set_questionnaire_id(json["questionnaire_id"])
     db.session.commit()
@@ -160,3 +160,15 @@ class QuestionMultiples(Question):
     __mapper_args__ = {
         "polymorphic_identity": "multiple"
     }
+
+def new_question(json):
+    match json["type"]:
+        case "text":
+            question = QuestionText(json["title"], json["questionnaire_id"])
+        case "multiple":
+            question = QuestionMultiples(request.json["title"], request.json["questionnaire_id"])
+        case _:
+            question = Question(request.json["title"], request.json["questionnaire_id"])
+    db.session.add(question)
+    db.session.commit()
+    return question

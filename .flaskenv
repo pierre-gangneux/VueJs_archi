@@ -1,2 +1,2 @@
-FLASK_APP=todo
+FLASK_APP=server
 FLASK_DEBUG=1
