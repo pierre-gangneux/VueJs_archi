@@ -91,7 +91,7 @@ class FormQuestionnaire extends HTMLDivElement {
     }
 
     fillFormQuestionnaire(questionnaire){
-        // modifier l'emplacement de l'id ou du questionnaire
+        // Enregistrement du questionnaire
         this.questionnaire = questionnaire;
         this.querySelector('#titreQuestionnaireInput').value = this.questionnaire.name;
         this.questionnaire.questions.forEach(question => {

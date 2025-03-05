@@ -144,8 +144,22 @@ def edit_question_row(json):
     return question.to_json()
 
 
-class QuestionText(Question):
-    id = db.Column(db.Integer, db.ForeignKey('question.id'), primary_key=True)
-    __mapper_args__ = {
-        "polymorphic_identity": "QuestionText"
-    }
+# class QuestionText(Question):
+#     id = db.Column(db.Integer, db.ForeignKey('question.id'), primary_key=True)
+#     reponse = db.Column(db.String(120))
+#     __mapper_args__ = {
+#         "polymorphic_identity": "questionText"
+#     }
+
+
+# class QuestionMultiples(Question):
+#     id = db.Column(db.Integer, db.ForeignKey('question.id'), primary_key=True)
+#     choix = db.Column(db.ARRAY(String))
+#     reponse = db.Column(db.ARRAY(String))
+#     __mapper_args__ = {
+#         "polymorphic_identity": "questionMultiples"
+#     }
+
+#     def __init__(self, title, questionType, questionnaire_id, choix, reponse):
+#         super().__init__(title, questionType, questionnaire_id)
+#     # def __init__(self, )

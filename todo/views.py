@@ -48,6 +48,7 @@ def questionnaire_questions(questionnaire_id:int):
         json: liste des questions du questionnaire
     """
     questionnaire = get_questions_questionnaire(questionnaire_id)
+    print(questionnaire)
     if questionnaire is None:
         # Le questionnaire n'existe pas
         abort(404)
@@ -111,6 +112,7 @@ def create_question():
     ):
         abort(400)
     question = Question(request.json["title"], request.json["type"], request.json["questionnaire_id"])
+    # question = new_question(request.json) regarde le contenu, créer la bonne question sinon abort(400)
     db.session.add(question)
     db.session.commit()
     return jsonify(question.to_json()), 201
