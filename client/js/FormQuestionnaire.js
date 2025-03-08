@@ -151,10 +151,10 @@ class FormQuestionnaire extends HTMLDivElement {
         // S'il n'y en a pas, on fait la requête à l'API
         else{
             // Création de la requête permettant de modifier le questionnaire
-            fetch('http://localhost:5000/api/questionnaires',{
+            fetch('http://localhost:5000/api/questionnaires/'+this.questionnaire.id,{
                 headers: {'Content-Type': 'application/json'},
                 method: 'PUT',
-                body: JSON.stringify({"questionnaire_id":this.questionnaire.id,"name":name})
+                body: JSON.stringify({"name":name})
             })
             .then(response => {
                 if (response.ok){
@@ -176,10 +176,9 @@ class FormQuestionnaire extends HTMLDivElement {
 
     deleteQuestionnaire(){
         // Création de la requête permettant de supprimer le questionnaire
-        fetch('http://localhost:5000/api/questionnaires',{
+        fetch('http://localhost:5000/api/questionnaires/' + this.questionnaire.id,{
             headers: {'Content-Type': 'application/json'},
-            method: 'DELETE',
-            body: JSON.stringify({"questionnaire_id":this.questionnaire.id})
+            method: 'DELETE'
         })
         .then(response => {
             if (response.ok){

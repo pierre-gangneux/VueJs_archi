@@ -132,11 +132,11 @@ class FormQuestion extends HTMLLIElement {
         }
         // S'il n'y a pas d'erreurs
         else {
-            // Création de la requête permettant de modifier le questionnaire
-            fetch('http://localhost:5000/api/questions',{
+            // Création de la requête permettant de sauvegarder la question
+            fetch('http://localhost:5000/api/questionnaires/'+ this.formQuestionnaire.questionnaire.id +'/questions',{
             headers: {'Content-Type': 'application/json'},
             method: 'POST',
-            body: JSON.stringify({"title":title, "type":type, "questionnaire_id":this.formQuestionnaire.questionnaire.id})
+            body: JSON.stringify({"title":title, "type":type})
             })
             .then(response => {
                 if (response.ok){
@@ -160,7 +160,7 @@ class FormQuestion extends HTMLLIElement {
         let title = this.querySelector('#titreQuestion').value;
         // Récupère la valeur du type de la question
         let type = this.querySelector('#typeQuestion').value;
-        let bodyRequest = {'question_id':this.question.id};
+        let bodyRequest = {};
 
         // Regarde si le titre à changer et s'il n'est pas vide
         if (this.question.title != title){
@@ -181,9 +181,9 @@ class FormQuestion extends HTMLLIElement {
             }
         }
         // S'il y a une modification, on envoi une requête
-        if (Object.keys(bodyRequest).length > 1){
+        if (Object.keys(bodyRequest).length >= 1){
             // Création de la requête permettant de modifier la question
-            fetch('http://localhost:5000/api/questions',{
+            fetch('http://localhost:5000/api/questionnaires/' + this.formQuestionnaire.questionnaire.id + '/questions/' + this.question.id,{
                 headers: {'Content-Type': 'application/json'},
                 method: 'PUT',
                 body: JSON.stringify(bodyRequest)
@@ -211,10 +211,9 @@ class FormQuestion extends HTMLLIElement {
     
     deleteQuestion(){
         // Création de la requête permettant de supprimer la question
-        fetch('http://localhost:5000/api/questions',{
+        fetch('http://localhost:5000/api/questionnaires/' + this.formQuestionnaire.questionnaire.id + '/questions/' + this.question.id,{
             headers: {'Content-Type': 'application/json'},
-            method: 'DELETE',
-            body: JSON.stringify({"question_id":this.question.id})
+            method: 'DELETE'
         })
         .then(async response => {
             if (response.ok){

@@ -45,7 +45,7 @@ def get_next_id_Questionnaire():
     return next_id
 
 def delete_questionnaire_row(id_questionnaire):
-    questionnaire = Questionnaire.query.filter(Questionnaire.id == int(id_questionnaire)).first()
+    questionnaire = Questionnaire.query.filter(Questionnaire.id == id_questionnaire).first()
     if questionnaire is None:
         return None
     for question in questionnaire.get_questions():
@@ -54,8 +54,8 @@ def delete_questionnaire_row(id_questionnaire):
     db.session.commit()
     return questionnaire.to_json()
 
-def edit_questionnaire_row(json):
-    questionnaire = Questionnaire.query.filter(Questionnaire.id == int(json["questionnaire_id"])).first()
+def edit_questionnaire_row(questionnaire_id, json):
+    questionnaire = Questionnaire.query.filter(Questionnaire.id == questionnaire_id).first()
     if questionnaire is None:
         return None
     if "name" in json:
@@ -106,7 +106,7 @@ class Question(db.Model):
             if type == "text":
                 question = QuestionText(self.title, self.questionnaire_id, self.id)
             elif type == "multiple":
-                question = QuestionMultiples(self.title, self.questionnaire_id, self.id)
+                question = QuestionMultiple(self.title, self.questionnaire_id, self.id)
             db.session.add(question)
             db.session.commit()
             return question
@@ -124,9 +124,9 @@ def get_questions_questionnaire(id_questionnaire):
 def get_questions():
     return [question.to_json() for question in Question.query.all()]
 
-def get_question(id_question):
+def get_question(questionnaire_id, id_question):
     try:
-        return Question.query.filter(Question.id == id_question).first().to_json()
+        return Question.query.filter(Question.id == id_question, Question.questionnaire_id == questionnaire_id).first().to_json()
     except:
         return None
 
@@ -135,24 +135,22 @@ def get_next_id_Question():
     next_id = (max_id or 0) + 1
     return next_id
 
-def delete_question_row(id_question):
-    question = Question.query.filter(Question.id == int(id_question)).first()
+def delete_question_row(questionnaire_id, id_question):
+    question = Question.query.filter(Question.id == id_question, Question.questionnaire_id == questionnaire_id).first()
     if question is None:
         return None
     db.session.delete(question)
     db.session.commit()
     return question.to_json()
 
-def edit_question_row(json):
-    question = Question.query.filter(Question.id == int(json["question_id"])).first()
+def edit_question_row(questionnaire_id, id_question, json):
+    question = Question.query.filter(Question.id == id_question, Question.questionnaire_id == questionnaire_id).first()
     if question is None:
         return None
     if "type" in json:
         question = question.set_type(json["type"])
     if "title" in json:
         question.set_title(json["title"])
-    if "questionnaire_id" in json:
-        question.set_questionnaire_id(json["questionnaire_id"])
     db.session.commit()
     return question.to_json()
 
@@ -166,21 +164,21 @@ class QuestionText(Question):
 
 
 
-class QuestionMultiples(Question):
+class QuestionMultiple(Question):
     id = db.Column(db.Integer, db.ForeignKey('question.id'), primary_key=True)
 
     __mapper_args__ = {
         "polymorphic_identity": "multiple"
     }
 
-def new_question(json):
+def new_question(questionnaire_id, json):
     match json["type"]:
         case "text":
-            question = QuestionText(json["title"], json["questionnaire_id"])
+            question = QuestionText(json["title"], questionnaire_id)
         case "multiple":
-            question = QuestionMultiples(json["title"], json["questionnaire_id"])
+            question = QuestionMultiple(json["title"], questionnaire_id)
         case _:
-            question = QuestionText(json["title"], json["questionnaire_id"])
+            question = QuestionText(json["title"], questionnaire_id)
     db.session.add(question)
     db.session.commit()
     return question

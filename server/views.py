@@ -1,8 +1,7 @@
-from flask import jsonify , abort , make_response , request, Flask, url_for, redirect
+from flask import jsonify, abort, make_response, request, url_for, redirect
 from .app import app, db
 from .models import (
     Questionnaire,
-    Question,
     getQuestionnaires,
     get_questionnaire,
     get_questions_questionnaire,
@@ -14,12 +13,8 @@ from .models import (
     edit_questionnaire_row,
     new_question
 )
-    
 
-
-@app.route("/")
-def home():
-    return redirect(url_for("questionnaires"))
+# Récupérer des questions et des questionnaires #
 
 @app.route("/api/questionnaires", methods = ['GET'])
 def questionnaires():
@@ -40,7 +35,7 @@ def questionnaire(questionnaire_id:int):
     """Permet obtenir un questionnaire en renseignant son id avec la méthode GET
 
     Args:
-        questionnaire_id (int): l'id du questionnaire que l'on veut récupérer
+        questionnaire_id (int): l'id du questionnaire
 
     Returns:
         json: questionnaire
@@ -56,7 +51,7 @@ def questionnaire_questions(questionnaire_id:int):
     """Permet d'obtenir les questions d'un questionnaire avec la méthode GET
 
     Args:
-        questionnaire_id (int): l'id du questionnaire contenant les questions
+        questionnaire_id (int): l'id du questionnaire
 
     Returns:
         json: liste des questions du questionnaire
@@ -67,21 +62,18 @@ def questionnaire_questions(questionnaire_id:int):
         abort(404)
     return jsonify(questionnaire), 200
 
-@app.route("/api/questions", methods = ['GET'])
-def questions():
-    return jsonify(get_questions()), 200
-
-@app.route("/api/question/<int:id_question>", methods = ['GET'])
-def question(id_question:int):
+@app.route("/api/questionnaires/<int:questionnaire_id>/question/<int:id_question>", methods = ['GET'])
+def question(questionnaire_id:int, id_question:int):
     """Permet d'obtenir le json d'un question avec la méthode GET
 
     Args:
-        id_question (int): l'id de la question que l'on veut récupérer
+        questionnaire_id (int): l'id du questionnaire
+        id_question (int): l'id de la question
 
     Returns:
         json: la question
     """
-    question = get_question(id_question)
+    question = get_question(questionnaire_id, id_question)
     if question is None:
         # La question n'existe pas
         abort(404)
@@ -107,11 +99,14 @@ def create_questionnaires():
     questionnaire["uri"] = "/api/questionnaire/"+str(questionnaire["id"])+"/questions"
     return jsonify(questionnaire), 201
 
-# curl -i -H "Content-Type: application/json" -X POST -d '{"title":"testQ", "type":"text", "questionnaire_id":1}' http://localhost:5000/api/questions
-@app.route("/api/questions", methods = ['POST'])
-def create_question():
+# curl -i -H "Content-Type: application/json" -X POST -d '{"title":"testQ", "type":"text"}' http://localhost:5000/api/questionnaires/1/questions
+@app.route("/api/questionnaires/<int:questionnaire_id>/questions", methods = ['POST'])
+def create_question(questionnaire_id:int):
     """Permet de créer une question avec la méthode POST
     Nécessite un titre, un type et l'id d'un questionnaire pour créer la question
+
+    Args:
+        questionnaire_id (int): l'id du questionnaire
 
     Returns:
         json: la question une fois créer
@@ -119,77 +114,85 @@ def create_question():
     if (
         not request.json
         or not 'title' in request.json 
-        or not 'type' in request.json 
-        or not 'questionnaire_id' in request.json 
-        or get_questionnaire(request.json["questionnaire_id"]) is None
+        or not 'type' in request.json
     ):
         abort(400)
-    question = new_question(request.json)
+    question = new_question(questionnaire_id, request.json)
     if question is None:
         abort(400)
     return jsonify(question.to_json()), 201
 
 # Modifier les questions et les questionnaires #
 
-# curl -i -H "Content-Type: application/json" -X PUT -d '{"questionnaire_id":1,"name":"new_name"}' http://localhost:5000/api/questionnaires
-@app.route("/api/questionnaires", methods = ["PUT"])
-def edit_questionnaire():
+# curl -i -H "Content-Type: application/json" -X PUT -d '{"name":"new_name"}' http://localhost:5000/api/questionnaires/1
+@app.route("/api/questionnaires/<int:questionnaire_id>", methods = ["PUT"])
+def edit_questionnaire(questionnaire_id:int):
     """Permet de modifier un questionnaire
+
+    Args:
+        questionnaire_id (int): l'id du questionnaire
 
     Returns:
         json: le json du questionnaire une fois modifier
     """
-    if not request.json or not 'questionnaire_id' in request.json or len(request.json) <= 1:
+    if not request.json:
         abort(400)
-    questionnaire = edit_questionnaire_row(request.json)
+    questionnaire = edit_questionnaire_row(questionnaire_id, request.json)
     if questionnaire is None:
         abort(404)
     questionnaire["uri"] = "/api/questionnaire/"+str(questionnaire["id"])+"/questions"
     return jsonify(questionnaire), 200
 
-# curl -i -H "Content-Type: application/json" -X PUT -d '{"question_id":1, "title":"testQ", "type":"text", "questionnaire_id":1}' http://localhost:5000/api/questions
-@app.route("/api/questions", methods = ['PUT'])
-def edit_question():
+# curl -i -H "Content-Type: application/json" -X PUT -d '{"title":"testQ", "type":"text"}' http://localhost:5000/api/questionnaires/1/questions/1
+@app.route("/api/questionnaires/<int:questionnaire_id>/questions/<int:id_question>", methods = ['PUT'])
+def edit_question(questionnaire_id:int, id_question:int):
     """Permet de modifier une question
+
+    Args:
+        questionnaire_id (int): l'id du questionnaire
+        id_question (int): l'id de la question
 
     Returns:
         json: le json de la question une fois modifier
     """
-    if not request.json or not 'question_id' in request.json or len(request.json) <= 1:
+    if not request.json:
         abort(400)
-    question = edit_question_row(request.json)
+    question = edit_question_row(questionnaire_id, id_question, request.json)
     if question is None:
         abort(404)
     return jsonify(question), 200
 
 # Supprimer les questions et les questionnaires #
 
-# curl -i -H "Content-Type: application/json" -X DELETE -d '{"questionnaire_id":"1"}' http://localhost:5000/api/questionnaires
-@app.route("/api/questionnaires", methods = ["DELETE"])
-def delete_questionnaire():
+# curl -i -H "Content-Type: application/json" -X DELETE http://localhost:5000/api/questionnaires/1
+@app.route("/api/questionnaires/<int:questionnaire_id>", methods = ["DELETE"])
+def delete_questionnaire(questionnaire_id:int):
     """Permet de supprimer un questionnaire
+
+    Args:
+        questionnaire_id (int): l'id du questionnaire
 
     Returns:
         json: le json du questionnaire une fois supprimer
     """
-    if not request.json or not 'questionnaire_id' in request.json:
-        abort(400)
-    questionnaire = delete_questionnaire_row(request.json["questionnaire_id"])
+    questionnaire = delete_questionnaire_row(questionnaire_id)
     if questionnaire is None:
         abort(404)
     return jsonify(questionnaire), 200
 
-# curl -i -H "Content-Type: application/json" -X DELETE -d '{"question_id":"2"}' http://localhost:5000/api/questions
-@app.route("/api/questions", methods = ['DELETE'])
-def delete_question():
+# curl -i -H "Content-Type: application/json" -X DELETE http://localhost:5000/api/questionnaires/1/questions/1
+@app.route("/api/questionnaires/<int:questionnaire_id>/questions/<int:id_question>", methods = ['DELETE'])
+def delete_question(questionnaire_id:int, id_question:int):
     """Permet de supprimer une question
+
+    Args:
+        questionnaire_id (int): l'id du questionnaire
+        id_question (int): l'id de la question
 
     Returns:
         json: le json de la question une fois supprimer
     """
-    if not request.json or not 'question_id' in request.json:
-        abort(400)
-    question = delete_question_row(request.json["question_id"])
+    question = delete_question_row(questionnaire_id, id_question)
     if question is None:
         abort(404)
     return jsonify(question), 200
@@ -206,7 +209,7 @@ def not_found(error):
     Returns:
         json: Une description de l'erreur
     """
-    return make_response(jsonify({'error': 'Not found'}), 404)
+    return make_response(jsonify({'error': 'Not found - ' + error}), 404)
 
 @app.errorhandler(400)
 def not_found(error):
@@ -218,4 +221,4 @@ def not_found(error):
     Returns:
         json: Une description de l'erreur
     """
-    return make_response(jsonify({'error': 'Bad request'}), 400)
+    return make_response(jsonify({'error': 'Bad request - ' + error}), 400)
