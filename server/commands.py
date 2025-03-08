@@ -11,7 +11,7 @@ def syncdb():
 
 @app.cli.command()
 def generate_inserts():
-    inserts = []
+    inserts = ["DELETE FROM question_text; DELETE FROM question_multiple; DELETE FROM question; DELETE FROM questionnaire;"]
     question_id = 1
     for questionnaire_id in range(1, 6):
         inserts.append(f"INSERT INTO questionnaire (id, name) VALUES ({questionnaire_id}, 'Questionnaire {questionnaire_id}');")
