@@ -79,8 +79,10 @@ class Question(db.Model):
         "polymorphic_on": questionType
     }
 
-    def __init__(self, title, questionnaire_id):
-        self.id = get_next_id_Question()
+    def __init__(self, title, questionnaire_id, id=None):
+        if id is None:
+            self.id = get_next_id_Question()
+        self.id = id
         self.title = title
         self.questionnaire_id = questionnaire_id
 
@@ -96,7 +98,19 @@ class Question(db.Model):
         self.title = title
 
     def set_type(self, type):
-        self.questionType = type
+        if type in ["text", "multiple"]:
+            if self.questionType == type:
+                return self
+            db.session.delete(self)
+            db.session.commit()
+            if type == "text":
+                question = QuestionText(self.title, self.questionnaire_id, self.id)
+            elif type == "multiple":
+                question = QuestionMultiples(self.title, self.questionnaire_id, self.id)
+            db.session.add(question)
+            db.session.commit()
+            return question
+
     
     def set_questionnaire_id(self, id):
         self.questionnaire_id = id
@@ -133,11 +147,10 @@ def edit_question_row(json):
     question = Question.query.filter(Question.id == int(json["question_id"])).first()
     if question is None:
         return None
+    if "type" in json:
+        question = question.set_type(json["type"])
     if "title" in json:
         question.set_title(json["title"])
-    if "type" in json:
-        if json["type"] in ["texte", "multiple"]:
-            question.set_type(json["type"])
     if "questionnaire_id" in json:
         question.set_questionnaire_id(json["questionnaire_id"])
     db.session.commit()
@@ -146,7 +159,6 @@ def edit_question_row(json):
 
 class QuestionText(Question):
     id = db.Column(db.Integer, db.ForeignKey('question.id'), primary_key=True)
-    reponse = db.Column(db.String(120))
 
     __mapper_args__ = {
         "polymorphic_identity": "text"
@@ -166,9 +178,9 @@ def new_question(json):
         case "text":
             question = QuestionText(json["title"], json["questionnaire_id"])
         case "multiple":
-            question = QuestionMultiples(request.json["title"], request.json["questionnaire_id"])
+            question = QuestionMultiples(json["title"], json["questionnaire_id"])
         case _:
-            question = Question(request.json["title"], request.json["questionnaire_id"])
+            question = QuestionText(json["title"], json["questionnaire_id"])
     db.session.add(question)
     db.session.commit()
     return question

@@ -55,13 +55,25 @@ class FormQuestion extends HTMLLIElement {
         type.append(typeQuestion);
 
         // Création de l'input du type de la question
-        let typeQuestionInput = document.createElement('input');
+        let typeQuestionInput = document.createElement('select');
         typeQuestionInput.id = 'typeQuestion';
         type.append(typeQuestionInput);
 
         typeQuestionInput.style.padding = "0.5em";
         typeQuestionInput.style.borderRadius = "15px";
         typeQuestionInput.style.border = "none";
+        typeQuestionInput.style.flex = "1";
+
+        // Options du select
+        let typeText = document.createElement('option');
+        typeQuestionInput.append(typeText);
+        typeText.textContent = "text";
+        typeText.value = "text";
+
+        let typeMultiple = document.createElement('option');
+        typeQuestionInput.append(typeMultiple);
+        typeMultiple.textContent = "multiple";
+        typeMultiple.value = "multiple";
 
         // Boutons de gestion de la question
         let boutons = document.createElement('div');
