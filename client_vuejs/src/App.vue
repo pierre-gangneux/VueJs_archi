@@ -5,10 +5,8 @@ export default {
   data() {
     return {
       questionnaires: [
-        { id: 1, text: 'Faire les courses', checked: true },
-        { id: 2, text: 'Apprendre REST', checked: false }
       ],
-      title: 'Mes tâches',
+      title: 'Questionnaires',
       newItem: ''
     };
   },
@@ -53,7 +51,7 @@ export default {
     }
   },
   mounted() {
-    this.getQuestionnaires();
+    // this.getQuestionnaires();
     console.log("mounted");
   },
   components: { questionnaire }
@@ -63,6 +61,7 @@ export default {
 <template>
   <div class="container">
     <h2>{{ title }}</h2>
+    <input id="button" type="button" value="Recuperer les questionnaires" @click="getQuestionnaires"/>
     <ol>
       <questionnaire 
         v-for="questionnaire in questionnaires"
@@ -79,7 +78,7 @@ export default {
       <input
         v-model="newItem"
         @keyup.enter="addItem"
-        placeholder="Ajouter une tâche"
+        placeholder="Ajouter un Questionnaire"
         type="text"
         class="form-control"
       />
