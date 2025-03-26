@@ -11,8 +11,13 @@ Si vous voulez charger des données
     make loaddb
 
 ## Lancement
+Pour le serveur de l'API
 
     make run
+
+Pour le client VueJS
+
+    make runvue
 
 ## Détail des fonctionnalités
 
