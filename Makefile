@@ -2,6 +2,10 @@
 run:
 	bash -c "source venv/bin/activate && flask run"
 
+.PHONY : runvue
+runvue:
+	bash -c "source venv/bin/activate &&  cd client_vuejs/ && npm run dev"
+
 .PHONY: install
 install:
 	virtualenv -p python3 venv
