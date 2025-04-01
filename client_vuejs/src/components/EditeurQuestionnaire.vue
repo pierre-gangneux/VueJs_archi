@@ -29,6 +29,10 @@ export default {
         console.error(error);
         alert('Erreur serveur');
       }
+    },
+
+    newQuestionnaire(){
+      this.$emit('set_id_current_questionnaire', null)
     }
   }
 };
@@ -37,12 +41,10 @@ export default {
 <template>
   <h2>Éditeur de Questionnaires</h2>
   <section id="tools">
-    <img id="add" src="/img/new.png" alt="Nouveau questionnaire" @click="saveNewQuestionnaire" />
+    <img id="add" src="/img/new.png" alt="Nouveau questionnaire" @click="newQuestionnaire" />
+    <img id="save" src="/img/save.png" alt="save questionnaire" @click="saveNewQuestionnaire" />
     <p v-if="questionnaire">ID : {{ questionnaire.id }}</p>
-    <p v-else>Aucun questionnaire sélectionné</p>
-  </section>
-  <section id="currentQuestionnaire">
-    <div class="form-questionnaire">
+    <div v-else class="form-questionnaire">
       <h1>
         Titre:
         <input v-model="titreQuestionnaire" type="text" />
@@ -54,5 +56,8 @@ export default {
       </ul>
      
     </div>
+  </section>
+  <section id="currentQuestionnaire">
+    
   </section>
 </template>

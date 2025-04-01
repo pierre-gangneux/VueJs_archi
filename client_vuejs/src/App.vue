@@ -48,6 +48,7 @@ export default {
     },
 
     set_id_current_questionnaire($event){
+      
       this.id_current_questionnaire = $event
     },
 
@@ -90,6 +91,7 @@ export default {
   <editeurQuestionnaire
     :questionnaire="get_questionnaire_by_id(id_current_questionnaire)"
     @getQuestionnaire="getQuestionnaires"
+    @set_id_current_questionnaire="set_id_current_questionnaire"
   />
 </article>
 
