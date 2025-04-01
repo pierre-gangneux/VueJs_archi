@@ -54,16 +54,16 @@ export default {
     },
     getQuestionnairesQuestions(id){
       let questionnaire = this.getQuestionnaire(id);
-      await fetch('http://127.0.0.1:5000' + questionnaire.uri)
-        .then(response => {
-            if (response.ok) return response.json();
-            else throw new Error('Problème ajax: ' + response.status);
-        })
-        .then(dataQuestions => {
-          questionnaire.questions = []
-          dataQuestions.forEach(dataQuestion => questionnaire.questions.push(new Question(dataQuestion)));
-        })
-        .catch(Utilitaire.errorServeur);
+      fetch('http://127.0.0.1:5000' + questionnaire.uri)
+      .then(response => {
+          if (response.ok) return response.json();
+          else throw new Error('Problème ajax: ' + response.status);
+      })
+      .then(dataQuestions => {
+        questionnaire.questions = []
+        dataQuestions.forEach(dataQuestion => questionnaire.questions.push(new Question(dataQuestion)));
+      })
+      .catch(Utilitaire.errorServeur);
     },
     getQuestionnairesQuestion(questionnaireId, questionId){
       let questionnaire = this.getQuestionnaire(questionnaireId);
