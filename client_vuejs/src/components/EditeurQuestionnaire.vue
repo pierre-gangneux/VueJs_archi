@@ -33,6 +33,21 @@ export default {
 
     newQuestionnaire(){
       this.$emit('set_id_current_questionnaire', null)
+    },
+
+    async deleteQuestionnaire() {
+      try {
+        const response = await fetch(`http://localhost:5000/api/questionnaires/${this.questionnaire.id}`, {
+          method: 'DELETE',
+          headers: { 'Content-Type': 'application/json' }
+        });
+        if (!response.ok) throw new Error('Erreur lors de la suppression');
+        alert('Delete Success');
+        this.$emit('getQuestionnaire');
+      } catch (error) {
+        console.error(error);
+        alert('Erreur serveur');
+      }
     }
   }
 };
@@ -43,7 +58,7 @@ export default {
   <section id="tools">
     <img id="add" src="/img/new.png" alt="Nouveau questionnaire" @click="newQuestionnaire" />
     <img id="save" src="/img/save.png" alt="save questionnaire" @click="saveNewQuestionnaire" />
-    <p v-if="questionnaire">ID : {{ questionnaire.id }}</p>
+    <img v-if="questionnaire" id="del" src="/img/delete.png" alt="delete questionnaire" @click="deleteQuestionnaire" />
     <div v-else class="form-questionnaire">
       <h1>
         Titre:
