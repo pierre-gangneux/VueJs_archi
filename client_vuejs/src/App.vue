@@ -11,7 +11,7 @@ export default {
     };
   },
   methods: {
-    addItem() {
+    addQuestionnaire() {
       let name = this.newItem.trim();
       if (name) {
         fetch('http://localhost:5000/api/questionnaires',{
@@ -21,6 +21,7 @@ export default {
       })
       .then(() =>{
         this.getQuestionnaires();
+
       })
       }
     },
@@ -42,6 +43,7 @@ export default {
       }
     },
     getQuestionnaires(){
+      console.log("te ")
       fetch('http://127.0.0.1:5000/api/questionnaires')
       .then(response => response.json())
       .then(json=>{
@@ -75,16 +77,7 @@ export default {
         {{ questionnaire.name }}
       </questionnaire>
     </ol>
-    <div class="input-group">
-      <input
-        v-model="newItem"
-        @keyup.enter="addItem"
-        placeholder="Ajouter un Questionnaire"
-        type="text"
-        class="form-control"
-      />
-      <button @click="addItem" class="btn btn-primary">Ajouter</button>
-    </div>
+    
 </nav>
 
 <article>
@@ -96,3 +89,15 @@ export default {
 </article>
 
 </template>
+
+
+<!-- <div class="input-group">
+  <input
+    v-model="newItem"
+    @keyup.enter="addItem"
+    placeholder="Ajouter un Questionnaire"
+    type="text"
+    class="form-control"
+  />
+  <button @click="addQuestionnaire" class="btn btn-primary">Ajouter</button>
+</div> -->
