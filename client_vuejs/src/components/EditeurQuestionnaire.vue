@@ -24,7 +24,7 @@ export default {
         });
         if (!response.ok) throw new Error('Erreur lors de la création');
         alert('Insert Success');
-        this.$emit('refresh-list');
+        this.$emit('getQuestionnaire');
       } catch (error) {
         console.error(error);
         alert('Erreur serveur');
