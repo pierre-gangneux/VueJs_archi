@@ -1,13 +1,16 @@
 <script>
 import questionnaire from './components/Questionnaire.vue';
+import editeurQuestionnaire from './components/EditeurQuestionnaire.vue';
+
+
 
 export default {
   data() {
     return {
-      questionnaires: [
-      ],
+      questionnaires: [],
       title: 'Questionnaires',
-      newItem: ''
+      newItem: '',
+      id_current_questionnaire : null,
     };
   },
   methods: {
@@ -25,7 +28,8 @@ export default {
       })
       }
     },
-    get_questionnaire_by_id: function (id) {
+    get_questionnaire_by_id(id) {
+      console.log("get")
       for (let i=0; i < this.questionnaires.length; i++){
         if (this.questionnaires[i].id==id){
           return this.questionnaires[i];
@@ -42,8 +46,14 @@ export default {
         console.log($event.name)
       }
     },
+
+
+    set_id_current_questionnaire($event){
+      this.id_current_questionnaire = $event
+    },
+
+
     getQuestionnaires(){
-      console.log("te ")
       fetch('http://127.0.0.1:5000/api/questionnaires')
       .then(response => response.json())
       .then(json=>{
@@ -56,7 +66,7 @@ export default {
     // this.getQuestionnaires();
     console.log("mounted");
   },
-  components: { questionnaire }
+  components: { questionnaire, editeurQuestionnaire }
 };
 </script>
 
@@ -68,11 +78,8 @@ export default {
     <ol>
       <questionnaire 
         v-for="questionnaire in questionnaires"
-        :key="questionnaire.id"
         :questionnaire="questionnaire"
-        :class="{ 'alert alert-success': questionnaire.checked }"
-        @remove="remove"
-        @edit="edit"
+        @set_id_current_questionnaire="set_id_current_questionnaire"
       >
         {{ questionnaire.name }}
       </questionnaire>
@@ -81,12 +88,11 @@ export default {
 </nav>
 
 <article>
-  <h2>Editeur de Questionnaires</h2>
-  <section id="tools">
-    <img id="add" src="/img/new.png" alt="Nouveau questionnaire"/>
-  </section>
-  <section id="currentQuestionnaire"></section>
+  <editeurQuestionnaire
+    :questionnaire="get_questionnaire_by_id(id_current_questionnaire)"
+  />
 </article>
+
 
 </template>
 
