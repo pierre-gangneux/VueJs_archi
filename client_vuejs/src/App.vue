@@ -59,8 +59,9 @@ export default {
 </script>
 
 <template>
-  <div class="container">
-    <h2>{{ title }}</h2>
+
+<nav id="nav1">
+  <h2>{{ title }}</h2>
     <input id="button" type="button" value="Recuperer les questionnaires" @click="getQuestionnaires"/>
     <ol>
       <questionnaire 
@@ -84,5 +85,14 @@ export default {
       />
       <button @click="addItem" class="btn btn-primary">Ajouter</button>
     </div>
-  </div>
+</nav>
+
+<article>
+  <h2>Editeur de Questionnaires</h2>
+  <section id="tools">
+    <img id="add" src="/img/new.png" alt="Nouveau questionnaire"/>
+  </section>
+  <section id="currentQuestionnaire"></section>
+</article>
+
 </template>
