@@ -52,8 +52,27 @@ export default {
         if (this.questionnaires[i].id==id) return this.questionnaires[i];
       }
     },
-    getQuestions(id){
-      // TODO
+    getQuestionnairesQuestions(id){
+      let questionnaire = this.getQuestionnaire(id);
+      await fetch('http://127.0.0.1:5000' + questionnaire.uri)
+        .then(response => {
+            if (response.ok) return response.json();
+            else throw new Error('Problème ajax: ' + response.status);
+        })
+        .then(dataQuestions => {
+          questionnaire.questions = []
+          dataQuestions.forEach(dataQuestion => questionnaire.questions.push(new Question(dataQuestion)));
+        })
+        .catch(Utilitaire.errorServeur);
+    },
+    getQuestionnairesQuestion(questionnaireId, questionId){
+      let questionnaire = this.getQuestionnaire(questionnaireId);
+      if ("questions" in questionnaire){
+        let questions = questionnaire.questions;
+        for (let i=0; i < questions.length; i++){
+          if (questions[i].id==questionId) return questions[i];
+        }
+      }
     },
     createQuestionnaire(name){
       if (name == ''){
