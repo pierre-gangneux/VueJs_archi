@@ -12,23 +12,24 @@ export default {
   },
   methods: {
     async saveNewQuestionnaire() {
-      if (!this.titreQuestionnaire.trim()) {
-        alert('Il est impossible de créer un questionnaire avec un titre vide');
-        return;
-      }
-      try {
-        const response = await fetch('http://localhost:5000/api/questionnaires', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ name: this.titreQuestionnaire })
-        });
-        if (!response.ok) throw new Error('Erreur lors de la création');
-        alert('Insert Success');
-        this.$emit('getQuestionnaire');
-      } catch (error) {
-        console.error(error);
-        alert('Erreur serveur');
-      }
+        if (!this.titreQuestionnaire.trim()) {
+          alert('Il est impossible de créer un questionnaire avec un titre vide');
+          return;
+        }
+        try {
+          const response = await fetch('http://localhost:5000/api/questionnaires', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ name: this.titreQuestionnaire })
+          });
+          if (!response.ok) throw new Error('Erreur lors de la création');
+          alert('Insert Success');
+          this.$emit('getQuestionnaire');
+        } catch (error) {
+          console.error(error);
+          alert('Erreur serveur');
+        }
+      
     },
 
     newQuestionnaire() {
@@ -123,7 +124,7 @@ export default {
     <div v-else class="form-questionnaire">
       <h1>
         Titre:
-        <input type="text" />
+        <input type="text" v-model="titreQuestionnaire" />
       </h1>
     </div>
   </section>
