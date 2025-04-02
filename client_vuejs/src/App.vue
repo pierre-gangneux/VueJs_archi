@@ -1,10 +1,7 @@
 <script>
 import questionnaire from './components/Questionnaire.vue';
-
 import editeurQuestionnaire from './components/EditeurQuestionnaire.vue';
-
 import Utilitaire from './Utilitaire.js';
-
 
 export default {
   data() {
@@ -93,6 +90,7 @@ export default {
     
 
     createQuestion(questionnaireId, title, type){
+      console.log(questionnaireId + " - " + title + " - " + type)
       const errors = [];
       if (!title) errors.push("Il est impossible de créer une question avec un title vide");
       if (!type) errors.push("Il est impossible de créer une question avec un type vide");
@@ -108,19 +106,16 @@ export default {
           .then(response => {
               if (response.ok){
                   Utilitaire.successMessage('Insert Success');
+                  this.getQuestions();
                   return response.json();
               }
               else throw new Error('Problème ajax: ' + response.status);
-          })
-          .then(dataQuestion => {
-            this.getQuestionnaires()
           })
           .catch(Utilitaire.errorServeur);
       }
     },
 
     editQuestionnaire(questionnaireId, name, old_name){
-
       const errors = [];
       if (name == '') errors.push('Il est impossible de modifier un questionnaire avec un titre vide');
       if (name == old_name) errors.push("Le titre du questionnaire n'a pas changé");
@@ -147,7 +142,7 @@ export default {
       }
     },
 
-    editQuestionnaire(questionnaireId, questionId, title, type, old_title, old_type){
+    editQuestion(questionnaireId, questionId, title, type, old_title, old_type){
         let bodyRequest = {};
         if (old_title != title){
             if (title != '') bodyRequest.title = title;
@@ -241,7 +236,8 @@ components: { questionnaire, editeurQuestionnaire }
     @getQuestionnaire="getQuestionnaires"
     @getQuestions="getQuestions"
     @set_id_current_questionnaire="set_id_current_questionnaire"
-    @deleteQuestion="deleteQuestion"
+    @editQuestionnaire="editQuestionnaire"
+    @createQuestion="createQuestion"
   />
 </article>
 
