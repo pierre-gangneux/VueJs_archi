@@ -85,35 +85,30 @@ export default {
       }
   },
 
-    
-
-    
-
-    createQuestion(questionnaireId, title, type){
-      console.log(questionnaireId + " - " + title + " - " + type)
-      const errors = [];
-      if (!title) errors.push("Il est impossible de créer une question avec un title vide");
-      if (!type) errors.push("Il est impossible de créer une question avec un type vide");
-      if (errors.length){
-          errors.forEach(error => Utilitaire.errorClient(error));
-      }
-      else {
-          fetch('http://localhost:5000/api/questionnaires/'+ questionnaireId +'/questions',{
-          headers: {'Content-Type': 'application/json'},
-          method: 'POST',
-          body: JSON.stringify({"title": title, "type": type})
-          })
-          .then(response => {
-              if (response.ok){
-                  Utilitaire.successMessage('Insert Success');
-                  this.getQuestions();
-                  return response.json();
-              }
-              else throw new Error('Problème ajax: ' + response.status);
-          })
-          .catch(Utilitaire.errorServeur);
-      }
-    },
+  createQuestion(questionnaireId, title, type){
+    const errors = [];
+    if (!title) errors.push("Il est impossible de créer une question avec un title vide");
+    if (!type) errors.push("Il est impossible de créer une question avec un type vide");
+    if (errors.length){
+        errors.forEach(error => Utilitaire.errorClient(error));
+    }
+    else {
+        fetch('http://localhost:5000/api/questionnaires/'+ questionnaireId +'/questions',{
+        headers: {'Content-Type': 'application/json'},
+        method: 'POST',
+        body: JSON.stringify({"title": title, "type": type})
+        })
+        .then(response => {
+            if (response.ok){
+                Utilitaire.successMessage('Insert Success');
+                this.getQuestions();
+                return response.json();
+            }
+            else throw new Error('Problème ajax: ' + response.status);
+        })
+        .catch(Utilitaire.errorServeur);
+    }
+  },
 
     editQuestionnaire(questionnaireId, name, old_name){
       const errors = [];
@@ -142,16 +137,12 @@ export default {
       }
     },
 
-    editQuestion(questionnaireId, questionId, title, type, old_title, old_type){
+    editQuestion(questionnaireId, questionId, title, type){
         let bodyRequest = {};
-        if (old_title != title){
-            if (title != '') bodyRequest.title = title;
-            else Utilitaire.errorClient("Il n'est pas possible d'avoir un titre vide");
-        }
-        if (old_type != type){
-            if (type != '') bodyRequest.type = type;
-            else Utilitaire.errorClient("Il n'est pas possible d'avoir un type vide");
-        }
+        if (title != '') bodyRequest.title = title;
+        else Utilitaire.errorClient("Il n'est pas possible d'avoir un titre vide");
+        if (type != '') bodyRequest.type = type;
+        else Utilitaire.errorClient("Il n'est pas possible d'avoir un type vide");
         if (Object.keys(bodyRequest).length >= 1){
             fetch('http://localhost:5000/api/questionnaires/' + questionnaireId + '/questions/' + questionId,{
                 headers: {'Content-Type': 'application/json'},
@@ -204,7 +195,7 @@ watch: {
                 this.getQuestions();
             }
         },
-        immediate: true // Charge les questions au montage si un questionnaire est déjà sélectionné
+        immediate: true
     }
 },
 
@@ -238,6 +229,7 @@ components: { questionnaire, editeurQuestionnaire }
     @set_id_current_questionnaire="set_id_current_questionnaire"
     @editQuestionnaire="editQuestionnaire"
     @createQuestion="createQuestion"
+    @editQuestion="editQuestion"
   />
 </article>
 
