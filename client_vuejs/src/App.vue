@@ -1,12 +1,10 @@
 <script>
 import questionnaire from './components/Questionnaire.vue';
-<<<<<<< HEAD
+
 import editeurQuestionnaire from './components/EditeurQuestionnaire.vue';
 
-
-=======
 import Utilitaire from './Utilitaire.js';
->>>>>>> develop
+
 
 export default {
   data() {
@@ -98,7 +96,7 @@ export default {
         if (this.questionnaires[i].id==id) return this.questionnaires[i];
       }
   },
-  
+
     getQuestionnairesQuestions(id){
       let questionnaire = this.getQuestionnaire(id);
       fetch('http://127.0.0.1:5000' + questionnaire.uri)
