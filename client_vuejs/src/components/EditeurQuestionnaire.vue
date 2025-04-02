@@ -7,7 +7,11 @@ export default {
   data() {
     return {
       have_new_question: false,
-      titreQuestionnaire: "" // Initialisation correcte
+      titreQuestionnaire: "",
+      newQuestionV: {
+        title: "",
+        type: "text"
+      }
     };
   },
   methods: {
@@ -60,6 +64,12 @@ export default {
 
     editQuestionnaire() {
       this.$emit('editQuestionnaire', this.questionnaire.id, this.titreQuestionnaire);
+    },
+    
+    createQuestion(){
+      this.$emit('createQuestion', this.questionnaire.id, this.newQuestionV.title, this.newQuestionV.type);
+      this.newQuestionV = { title: "", type: "text" };
+      this.have_new_question = false;
     }
   },
   watch: {
@@ -107,16 +117,20 @@ export default {
           
         </li>
         <li v-if="have_new_question">
-          <p>Titre <input type="text"></p>
           <p>
-            Type <select>
+            Titre 
+            <input type="text" v-model="newQuestionV.title">
+          </p>
+          <p>
+            Type 
+            <select v-model="newQuestionV.type">
               <option value="text">text</option>
               <option value="multiple">multiple</option>
             </select>
-            <div>
-              <img id="save" src="/img/save.png" alt="save question" @click="" />
-            </div>
           </p>
+          <div>
+            <img id="save" src="/img/save.png" alt="save question" @click="createQuestion" />
+          </div>
         </li>
       </ul>
       <img id="add" src="/img/new.png" alt="Nouveau questionnaire" @click="newQuestion" />
