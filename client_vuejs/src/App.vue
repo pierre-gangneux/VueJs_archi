@@ -143,6 +143,7 @@ export default {
     },
 
     createQuestion(questionnaireId, title, type){
+      console.log(questionnaireId + " - " + title + " - " + type)
       const errors = [];
       if (!title) errors.push("Il est impossible de créer une question avec un title vide");
       if (!type) errors.push("Il est impossible de créer une question avec un type vide");
@@ -158,19 +159,16 @@ export default {
           .then(response => {
               if (response.ok){
                   Utilitaire.successMessage('Insert Success');
+                  this.getQuestions();
                   return response.json();
               }
               else throw new Error('Problème ajax: ' + response.status);
-          })
-          .then(dataQuestion => {
-            this.getQuestionnaires()
           })
           .catch(Utilitaire.errorServeur);
       }
     },
 
     editQuestionnaire(questionnaireId, name, old_name){
-      console.log(questionnaireId + " - " + name + " - " + old_name)
       const errors = [];
       if (name == '') errors.push('Il est impossible de modifier un questionnaire avec un titre vide');
       if (name == old_name) errors.push("Le titre du questionnaire n'a pas changé");
@@ -308,6 +306,7 @@ components: { questionnaire, editeurQuestionnaire }
     @getQuestionnaire="getQuestionnaires"
     @set_id_current_questionnaire="set_id_current_questionnaire"
     @editQuestionnaire="editQuestionnaire"
+    @createQuestion="createQuestion"
   />
 </article>
 
