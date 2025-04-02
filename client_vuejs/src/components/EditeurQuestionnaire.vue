@@ -70,6 +70,10 @@ export default {
       this.$emit('createQuestion', this.questionnaire.id, this.newQuestionV.title, this.newQuestionV.type);
       this.newQuestionV = { title: "", type: "text" };
       this.have_new_question = false;
+    },
+
+    editQuestion(questionId, title, type){
+      this.$emit("editQuestion", this.questionnaire.id, questionId, title, type)
     }
   },
   watch: {
@@ -111,7 +115,7 @@ export default {
             </select>
           </p>
           <div>
-            <img id="save" src="/img/save.png" alt="save questionnaire" @click="" />
+            <img id="save" src="/img/save.png" alt="save questionnaire" @click="editQuestion(question.id, question.title, question.type)" />
             <img v-if="questionnaire" id="del" src="/img/delete.png" alt="delete questionnaire" @click="" />
           </div>
           
