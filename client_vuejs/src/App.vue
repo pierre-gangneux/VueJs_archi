@@ -1,12 +1,7 @@
 <script>
 import questionnaire from './components/Questionnaire.vue';
-<<<<<<< HEAD
 import editeurQuestionnaire from './components/EditeurQuestionnaire.vue';
-
-
-=======
 import Utilitaire from './Utilitaire.js';
->>>>>>> develop
 
 export default {
   data() {
@@ -175,7 +170,7 @@ export default {
     },
 
     editQuestionnaire(questionnaireId, name, old_name){
-
+      console.log(questionnaireId + " - " + name + " - " + old_name)
       const errors = [];
       if (name == '') errors.push('Il est impossible de modifier un questionnaire avec un titre vide');
       if (name == old_name) errors.push("Le titre du questionnaire n'a pas changé");
@@ -202,7 +197,7 @@ export default {
       }
     },
 
-    editQuestionnaire(questionnaireId, questionId, title, type, old_title, old_type){
+    editQuestion(questionnaireId, questionId, title, type, old_title, old_type){
         let bodyRequest = {};
         if (old_title != title){
             if (title != '') bodyRequest.title = title;
@@ -312,6 +307,7 @@ components: { questionnaire, editeurQuestionnaire }
     :questions="this.questions"
     @getQuestionnaire="getQuestionnaires"
     @set_id_current_questionnaire="set_id_current_questionnaire"
+    @editQuestionnaire="editQuestionnaire"
   />
 </article>
 
