@@ -6,12 +6,13 @@ export default {
   },
   data() {
     return {
-      have_new_question : false
+      have_new_question: false,
+      titreQuestionnaire: "" // Initialisation correcte
     };
   },
   methods: {
     async saveNewQuestionnaire() {
-      if (!this.titreQuestionnaire) {
+      if (!this.titreQuestionnaire.trim()) {
         alert('Il est impossible de créer un questionnaire avec un titre vide');
         return;
       }
@@ -30,8 +31,9 @@ export default {
       }
     },
 
-    newQuestionnaire(){
-      this.$emit('set_id_current_questionnaire', null)
+    newQuestionnaire() {
+      this.titreQuestionnaire = ""; // Réinitialisation du titre
+      this.$emit('set_id_current_questionnaire', null);
     },
 
     async deleteQuestionnaire() {
@@ -49,43 +51,44 @@ export default {
       }
     },
 
-    newQuestion(){
-      if (! this.have_new_question){
-        this.have_new_question = true
+    newQuestion() {
+      if (!this.have_new_question) {
+        this.have_new_question = true;
       }
+    },
+
+    editQuestionnaire() {
+      this.$emit('editQuestionnaire', this.questionnaire.id, this.titreQuestionnaire);
     }
-
-    
-
-
   },
   watch: {
     questionnaire: {
       handler(newquestionnaire) {
-            if (newquestionnaire) {
-                this.have_new_question = false;
-            }
-        },
+        if (newquestionnaire) {
+          this.have_new_question = false;
+          this.titreQuestionnaire = newquestionnaire.name || "";
+        }
+      },
+      immediate: true
     }
   }
-
-
-  
 };
 </script>
+
 
 <template>
   <h2>Éditeur de Questionnaires</h2>
   <section id="tools">
     <img id="add" src="/img/new.png" alt="Nouveau questionnaire" @click="newQuestionnaire" />
-    <img id="save" src="/img/save.png" alt="save questionnaire" @click="saveNewQuestionnaire" />
+    <img v-if="questionnaire" id="save" src="/img/save.png" alt="save questionnaire" @click="editQuestionnaire" />
+    <img v-else id="save" src="/img/save.png" alt="save questionnaire" @click="saveNewQuestionnaire" />
     <img v-if="questionnaire" id="del" src="/img/delete.png" alt="delete questionnaire" @click="deleteQuestionnaire" />
   </section>
   <section>
     <div v-if="questionnaire">
       <h1>
         Titre:
-        <input v-model="questionnaire.name" type="text"/>
+        <input v-model="titreQuestionnaire" type="text"/>
       </h1>
       <ul>
         <li v-for="question in questions" >
