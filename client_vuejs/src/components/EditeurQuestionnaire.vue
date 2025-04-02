@@ -62,6 +62,25 @@ export default {
       }
     },
 
+    deleteQuestion(questionId){
+      fetch('http://localhost:5000/api/questionnaires/' + this.questionnaire.id + '/questions/' + questionId,{
+            headers: {'Content-Type': 'application/json'},
+            method: 'DELETE'
+        })
+        .then(response => {
+            if (response.ok){
+                alert('Delete Success');
+                this.$emit('getQuestions');
+                return response.json();
+            }
+            else throw new Error('Problème ajax: ' + response.status);
+        })
+        .then(dataQuestion => {
+            alert(`Supression de la question ${dataQuestion.title}`);
+        })
+    },
+
+
     editQuestionnaire() {
       this.$emit('editQuestionnaire', this.questionnaire.id, this.titreQuestionnaire);
     },
@@ -111,8 +130,8 @@ export default {
             </select>
           </p>
           <div>
-            <img id="save" src="/img/save.png" alt="save questionnaire" @click="" />
-            <img v-if="questionnaire" id="del" src="/img/delete.png" alt="delete questionnaire" @click="" />
+            <img id="save" src="/img/save.png" alt="save question" @click="" />
+            <img v-if="questionnaire"  src="/img/delete.png" alt="delete questionnaire" @click="deleteQuestion(question.id)" />
           </div>
           
         </li>

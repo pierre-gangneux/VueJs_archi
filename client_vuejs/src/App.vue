@@ -36,15 +36,6 @@ export default {
         }
       }
     },
-    remove ($event) {
-      this.questionnaires = this.questionnaires.filter(questionnaire => questionnaire.id !== $event.id);
-    },
-    edit($event) {
-      let questionnaire = this.questionnaires.find(t => t.id === $event.id);
-      if (questionnaire) {
-        questionnaire.name = $event.name;
-      }
-    },
 
     set_id_current_questionnaire($event){
       
@@ -93,54 +84,10 @@ export default {
         if (this.questionnaires[i].id==id) return this.questionnaires[i];
       }
   },
-  
-    getQuestionnairesQuestions(id){
-      let questionnaire = this.getQuestionnaire(id);
-      fetch('http://127.0.0.1:5000' + questionnaire.uri)
-      .then(response => {
-          if (response.ok) return response.json();
-          else throw new Error('Problème ajax: ' + response.status);
-      })
-      .then(dataQuestions => {
-        questionnaire.questions = []
-        dataQuestions.forEach(dataQuestion => questionnaire.questions.push(new Question(dataQuestion)));
-      })
-      .catch(Utilitaire.errorServeur);
-    },
-    getQuestionnairesQuestion(questionnaireId, questionId){
-      let questionnaire = this.getQuestionnaire(questionnaireId);
-      if ("questions" in questionnaire){
-        let questions = questionnaire.questions;
-        for (let i=0; i < questions.length; i++){
-          if (questions[i].id==questionId) return questions[i];
-        }
-      }
-    },
 
-    createQuestionnaire(name){
-      if (name == ''){
-          Utilitaire.errorClient('Il est impossible de créer un questionnaire avec un titre vide');
-      }
-      else{
-          fetch('http://localhost:5000/api/questionnaires',{
-              headers: {'Content-Type': 'application/json'},
-              method: 'POST',
-              body: JSON.stringify({"name":name})
-          })
-          .then(response => {
-              if (response.ok){
-                  Utilitaire.successMessage('Insert Success');
-                  return response.json();
-              }
-              else throw new Error('Problème ajax: ' + response.status);
-          })
-          .then(async dataQuestionnaire => {
-            this.getQuestionnaires();
-              // QuestionnaireListe.getQuestionnaireListe().getQuestionnaire(dataQuestionnaire.id).details();
-          })
-          .catch(Utilitaire.errorServeur);
-      }
-    },
+    
+
+    
 
     createQuestion(questionnaireId, title, type){
       console.log(questionnaireId + " - " + title + " - " + type)
@@ -247,24 +194,7 @@ export default {
         .catch(Utilitaire.errorServeur);
     },
 
-    deleteQuestion(questionnaireId, questionId){
-      fetch('http://localhost:5000/api/questionnaires/' + questionnaireId + '/questions/' + questionId,{
-            headers: {'Content-Type': 'application/json'},
-            method: 'DELETE'
-        })
-        .then(response => {
-            if (response.ok){
-                Utilitaire.successMessage('Delete Success');
-                this.getQuestionnaires();
-                return response.json();
-            }
-            else throw new Error('Problème ajax: ' + response.status);
-        })
-        .then(dataQuestion => {
-            Utilitaire.successMessage(`Supression de la question ${dataQuestion.title}`);
-        })
-        .catch(Utilitaire.errorServeur);
-    },
+    
 
 },
 watch: {
@@ -304,6 +234,7 @@ components: { questionnaire, editeurQuestionnaire }
     :questionnaire="get_questionnaire_by_id(id_current_questionnaire)"
     :questions="this.questions"
     @getQuestionnaire="getQuestionnaires"
+    @getQuestions="getQuestions"
     @set_id_current_questionnaire="set_id_current_questionnaire"
     @editQuestionnaire="editQuestionnaire"
     @createQuestion="createQuestion"
