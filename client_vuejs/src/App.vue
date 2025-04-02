@@ -11,6 +11,7 @@ export default {
       title: 'Questionnaires',
       newItem: '',
       id_current_questionnaire : null,
+      questions : []
     };
   },
   methods: {
@@ -50,6 +51,7 @@ export default {
     set_id_current_questionnaire($event){
       
       this.id_current_questionnaire = $event
+      console.log(this.id_current_questionnaire)
     },
 
 
@@ -60,6 +62,42 @@ export default {
         console.log(json)
         this.questionnaires = json
       })
+    },
+
+    async getQuestions() {
+      let currentQuestionnaire = this.get_questionnaire_by_id(this.id_current_questionnaire);
+      
+      if (!currentQuestionnaire) {
+          console.error("Questionnaire non trouvé !");
+          return;
+      }
+
+      try {
+          const response = await fetch('http://127.0.0.1:5000' + currentQuestionnaire.uri);
+          if (!response.ok) throw new Error('Problème ajax: ' + response.status);
+
+          const dataQuestions = await response.json();
+          this.questions = dataQuestions.map(dataQuestion => ({
+              id: dataQuestion.id,
+              title: dataQuestion.title,
+              type: dataQuestion.type
+          }));
+
+          console.log("Questions récupérées :", this.questions);
+      } catch (error) {
+          console.error(error);
+      }
+  }
+
+  },
+  watch: {
+    id_current_questionnaire: {
+        handler(newId) {
+            if (newId) {
+                this.getQuestions();
+            }
+        },
+        immediate: true // Charge les questions au montage si un questionnaire est déjà sélectionné
     }
   },
   mounted() {
@@ -90,6 +128,7 @@ export default {
 <article>
   <editeurQuestionnaire
     :questionnaire="get_questionnaire_by_id(id_current_questionnaire)"
+    :questions="this.questions"
     @getQuestionnaire="getQuestionnaires"
     @set_id_current_questionnaire="set_id_current_questionnaire"
   />

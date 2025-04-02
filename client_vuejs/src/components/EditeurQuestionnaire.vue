@@ -2,12 +2,11 @@
 export default {
   props: {
     questionnaire: Object,
+    questions: Array
   },
   data() {
     return {
-      titreQuestionnaire: this.questionnaire?.name || '',
-      questions: this.questionnaire?.questions || [],
-      isNew: true
+      have_new_question : false
     };
   },
   methods: {
@@ -48,8 +47,30 @@ export default {
         console.error(error);
         alert('Erreur serveur');
       }
+    },
+
+    newQuestion(){
+      if (! this.have_new_question){
+        this.have_new_question = true
+      }
+    }
+
+    
+
+
+  },
+  watch: {
+    questionnaire: {
+      handler(newquestionnaire) {
+            if (newquestionnaire) {
+                this.have_new_question = false;
+            }
+        },
     }
   }
+
+
+  
 };
 </script>
 
@@ -59,17 +80,48 @@ export default {
     <img id="add" src="/img/new.png" alt="Nouveau questionnaire" @click="newQuestionnaire" />
     <img id="save" src="/img/save.png" alt="save questionnaire" @click="saveNewQuestionnaire" />
     <img v-if="questionnaire" id="del" src="/img/delete.png" alt="delete questionnaire" @click="deleteQuestionnaire" />
+  </section>
+  <section>
+    <div v-if="questionnaire">
+      <h1>
+        Titre:
+        <input v-model="questionnaire.name" type="text"/>
+      </h1>
+      <ul>
+        <li v-for="question in questions" >
+          <p>Titre <input v-model="question.title" type="text"></p>
+          <p>
+            Type <select v-model="question.type">
+              <option value="text">text</option>
+              <option value="multiple">multiple</option>
+            </select>
+          </p>
+          <div>
+            <img id="save" src="/img/save.png" alt="save questionnaire" @click="" />
+            <img v-if="questionnaire" id="del" src="/img/delete.png" alt="delete questionnaire" @click="" />
+          </div>
+          
+        </li>
+        <li v-if="have_new_question">
+          <p>Titre <input type="text"></p>
+          <p>
+            Type <select>
+              <option value="text">text</option>
+              <option value="multiple">multiple</option>
+            </select>
+            <div>
+              <img id="save" src="/img/save.png" alt="save question" @click="" />
+            </div>
+          </p>
+        </li>
+      </ul>
+      <img id="add" src="/img/new.png" alt="Nouveau questionnaire" @click="newQuestion" />
+    </div>
     <div v-else class="form-questionnaire">
       <h1>
         Titre:
-        <input v-model="titreQuestionnaire" type="text" />
+        <input type="text" />
       </h1>
-      <ul v-if="!isNew">
-        <li v-for="(question, index) in questions" :key="index">
-          {{ question.text }}
-        </li>
-      </ul>
-     
     </div>
   </section>
   <section id="currentQuestionnaire">
