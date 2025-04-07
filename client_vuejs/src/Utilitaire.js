@@ -1,4 +1,4 @@
-class Utilitaire{
+export default class Utilitaire{
     static clearContent(element){
         while(element.firstChild){
             element.removeChild(element.firstChild);
